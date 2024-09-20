@@ -1,0 +1,38 @@
+<div id="table_2_container" class="table_2_container display_off">
+    <!-- <table class="table_2">
+        <thead class="table_2_head">
+            <tr>
+                <th>Order nr.</th>
+                <th>Order date</th>
+                <th>Order cost</th>
+                <th>Status</th>
+                <th>Info</th>
+            </tr>
+        </thead>
+    </table> -->
+
+    <!-- table 2 body -->
+    <!-- <div class="table_2_body_container scrollable_orders">
+        <table class="table_2_body">
+            <tbody id="table_2_body_tbody" >
+                {% for order in orders1 %}
+                <tr>
+                    <td >{{ order.0 }}</td>
+                    <td >{{ order.1|date:'d.m.Y' }}</td>
+                    <td >{{ order.2|floatformat:2 }}<span>€</span></td>
+                    <td>
+                        {% if order.3 == -1 %}
+                            <div class="status_status yellow_oval">In progress</div>
+                        {% elif order.3 == 0 %}
+                            <div class="status_status red_oval">Partial</div>
+                        {% elif order.3 == 1 %}
+                            <div class="status_status blue_oval">Full</div>
+                        {% endif %}
+                    </td>
+                    <td><input type="submit" class="info_input" value="Info"  onclick = "orderModal(this)" /></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div> -->
+</div>

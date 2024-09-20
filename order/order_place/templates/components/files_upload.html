@@ -1,0 +1,9 @@
+<div class="files_container">
+    <div class="files__upload">
+        <form class="form" method="post" action="upload" enctype="multipart/form-data" >
+            {% csrf_token %}
+            <input class="load_input" type="file" name="file">
+            <button class="btn_big" type="submit">Load</button>
+        </form>
+    </div>
+</div>

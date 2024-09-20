@@ -1,0 +1,282 @@
+@media screen and (max-width: 1200px){
+    .switch_container{
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .grid-item {
+        padding-top: 0;
+    }
+
+    .search-btn{
+        margin-right:1px;
+    }
+
+    .order_modal_content {
+        width: 70vw;
+    }
+}
+
+@media screen and (max-width: 1000px){
+    .table_2_container {
+        width:80%;
+    }
+
+    .table_3_container {
+        width:80%;
+    }
+
+    .table_5_container {
+        width:80%;
+    }
+}
+
+@media screen and (max-width: 768px){
+    .grid-item{
+        font-size: 14px;
+    }
+
+    .table_2_container {
+        width:100%;
+    }
+
+    .table_3_container {
+        width:100%;
+    }
+
+    .table_5_container {
+        width:100%;
+    }
+
+    .order_modal_content {
+        width: 90vw;
+    }
+     
+    .grid-item{
+        font-size: 12px;
+    }
+
+    .balance_btn,
+    .btn_big{
+        padding: 5px;
+        width: 70px;
+        font-size: 12px;
+        height: 40px;
+    }
+    
+    
+    .grid-item {
+        padding: 0px;
+        font-size: 16px;
+    }
+
+    .table_5_empty_2{
+        display: none;
+    }
+
+    .btn_big{
+        margin: 0 10px 0 0;
+        padding: 3px;
+    }
+
+    .table_5_total_left,
+    .table_5_empty_1,
+    .table_5_total_right{
+        flex-basis: 33%;
+    }
+
+    td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .switch_container{
+        margin-bottom: 1vh;
+    }
+
+    .btn_big{
+        margin: 0 3px 0 0;
+        font-size:12px;
+    }
+
+    .balance_btn{
+        font-size:10px;
+    }
+
+    .manager,
+    .margin{
+        margin-left: 5px;
+    }
+
+    #phones_list_table_table td:nth-child(1) {width: 100%;}
+    #phones_list_table_table td:nth-child(2){width: 20%;float:left;height:40px;align-items:center;border-top:0; border-right:0;margin-bottom:5px;}
+    #phones_list_table_table td:nth-child(3){width: 30%;float:left;height:40px;align-items:center;border-top:0; border-right:0;}
+    #phones_list_table_table td:nth-child(4){border-right:0;}
+    #phones_list_table_table td:nth-child(4),
+    #phones_list_table_table td:nth-child(5) {
+        width: 25%;
+        float:left;
+        height:40px;
+        border-top:0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #phones_list_table_table td:nth-child(5) input{
+        height:27px;
+    }
+   
+    #phones_ordered_table_table #phones_ordered_table_tbody td:nth-child(1) { width: 100%; }
+    #phones_ordered_table_table td:nth-child(2) { width: 15%;float:left;height:40px;border-top:0; border-right:0;margin-bottom:5px; }
+    #phones_ordered_table_table #phones_ordered_table_tbody  td:nth-child(3) { width: 25%;float:left;height:40px;border-top:0; border-right:0; }
+    #phones_ordered_table_table #phones_ordered_table_tbody  td:nth-child(4) { width: 20%;float:left;height:40px;border-top:0; border-right:0; }
+    #phones_ordered_table_table #phones_ordered_table_tbody  td:nth-child(5) {  border-right:0; } 
+    #phones_ordered_table_table #phones_ordered_table_tbody  td:nth-child(5),
+    #phones_ordered_table_table #phones_ordered_table_tbody  td:nth-child(6) { 
+        width: 20%;
+        float:left;
+        height:40px;
+        border-top:0;
+        display: flex;
+        justify-content: center;
+        align-items: center; 
+    }
+    #phones_ordered_table_table #phones_ordered_table_tbody  td:nth-child(5) input,
+    #phones_ordered_table_table #phones_ordered_table_tbody  td:nth-child(6) input{ 
+        width: clamp(50px,100%,80px);
+        font-size: clamp(10px, 50vw, 12px);
+        height:27px; 
+    }
+     
+    #phones_list_table_table td:nth-child(1){border-top:2px solid blue; border-left:2px solid blue;border-right:2px solid blue;}
+    #phones_list_table_table td:nth-child(2){border-left:2px solid blue;border-bottom:2px solid blue;}
+    #phones_list_table_table td:nth-child(3){border-bottom:2px solid blue;}
+    #phones_list_table_table td:nth-child(4){border-bottom:2px solid blue;}
+    #phones_list_table_table td:nth-child(5){border-bottom:2px solid blue;border-right:2px solid blue;}
+    
+    #phones_ordered_table_table #phones_ordered_table_tbody  td:nth-child(1) {border-top:2px solid blue;border-left:2px solid blue;border-right:2px solid blue;}
+    #phones_ordered_table_table #phones_ordered_table_tbody  td:nth-child(2) {border-left:2px solid blue;border-bottom:2px solid blue;}
+    #phones_ordered_table_table #phones_ordered_table_tbody  td:nth-child(3) {border-bottom:2px solid blue;}
+    #phones_ordered_table_table #phones_ordered_table_tbody  td:nth-child(4) {border-bottom:2px solid blue;}
+    #phones_ordered_table_table #phones_ordered_table_tbody  td:nth-child(5) {border-bottom:2px solid blue;} 
+    #phones_ordered_table_table #phones_ordered_table_tbody  td:nth-child(6) {border-bottom:2px solid blue;border-right:2px solid blue;}
+
+    #phones_ordered_table_tbody_2 td:nth-child(1),
+    #phones_ordered_table_tbody_2 td:nth-child(2),
+    #phones_ordered_table_tbody_2 td:nth-child(3) { width: 33%;float:left; text-align:center; }
+    #phones_ordered_table_tbody_2 td:nth-child(4),
+    #phones_ordered_table_tbody_2 td:nth-child(5),
+    #phones_ordered_table_tbody_2 td:nth-child(6) { display: none; }
+    
+    #search{
+        margin-bottom:2px;
+    }
+    
+    .order-btn{
+        margin-left:1px;
+    }
+
+    .scrollable{
+        height:75vh;
+    }
+
+    .table_2_body td:nth-child(1) { width: 100%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; text-align:center; }
+    .table_2_body td:nth-child(2),
+    .table_2_body td:nth-child(3),
+    .table_2_body td:nth-child(4),
+    .table_2_body td:nth-child(5) { width: 25%; margin-bottom:5px; float:left; display: flex; align-items: center; justify-content: center; height:40px; text-align: center;  font-size:12px;}
+
+    .table_3_body td:nth-child(1) { width: 100%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; text-align:center; }
+    .table_3_body td:nth-child(2) { width: 25%; margin-bottom:5px; float:left; display: flex; align-items: center; justify-content: center; height:40px; text-align: center;  font-size:12px;}
+    .table_3_body td:nth-child(3) { width: 20%; margin-bottom:5px; float:left; display: flex; align-items: center; justify-content: center; height:40px; text-align: center;  font-size:12px;}
+    .table_3_body td:nth-child(4) { width: 25%; margin-bottom:5px; float:left; display: flex; align-items: center; justify-content: center; height:40px; text-align: center;  font-size:12px;}
+    .table_3_body td:nth-child(5) { width: 30%; margin-bottom:5px; float:left; display: flex; align-items: center; justify-content: center; height:40px; text-align: center;  font-size:12px;}
+
+    .table_5_body td:nth-child(1) { width: 99%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; text-align:center; }
+    .table_5_body td:nth-child(2),
+    .table_5_body td:nth-child(3),
+    .table_5_body td:nth-child(4) { width: 33%; margin-bottom:5px; float:left; display: flex; align-items: center; justify-content: center; height:40px; text-align: center;  font-size:12px;}
+     
+    .table_order_modal_body #table_order_modal_body_tbody td:nth-child(1) { width: 99%; overflow: hidden; }
+    .table_order_modal_body #table_order_modal_body_tbody td:nth-child(2),
+    .table_order_modal_body #table_order_modal_body_tbody td:nth-child(3),
+    .table_order_modal_body #table_order_modal_body_tbody td:nth-child(4) { width: 33%; margin-bottom:5px; float:left; display: flex; align-items: center; height:40px; }
+     
+    .table_order_modal_body #table_order_modal_body_tbody td:nth-child(2),
+    .table_order_modal_body #table_order_modal_body_tbody td:nth-child(3) { justify-content: center; }
+    .table_order_modal_body #table_order_modal_body_tbody td:nth-child(4) { justify-content: right; }
+
+     
+    .table_order_modal_body #table_order_modal_body_tbody td:nth-child(1) { border-top:2px solid blue; border-left:2px solid blue;border-right:2px solid blue;}
+    .table_order_modal_body #table_order_modal_body_tbody td:nth-child(2) {  border-left:2px solid blue;border-bottom:2px solid blue; border-top:0; border-right:0 }
+    .table_order_modal_body #table_order_modal_body_tbody td:nth-child(3) { border-bottom:2px solid blue; border-top:0; border-right:0}
+    .table_order_modal_body #table_order_modal_body_tbody td:nth-child(4) { border-right:2px solid blue;border-bottom:2px solid blue; border-top:0; }
+
+    .table_2_body td:nth-child(1) { border-top:2px solid blue; border-left:2px solid blue;border-right:2px solid blue;  }
+    .table_2_body td:nth-child(2) { border-left:2px solid blue;border-bottom:2px solid blue; border-top:0; border-right:0 }
+    .table_2_body td:nth-child(3) { border-bottom:2px solid blue; border-top:0; border-right:0}
+    .table_2_body td:nth-child(4) { border-bottom:2px solid blue; border-top:0; border-right:0}
+    .table_2_body td:nth-child(5) { border-right:2px solid blue;border-bottom:2px solid blue; border-top:0; }
+
+    #table_order_modal_body_tbody_2 tr {display: flex;}
+    #table_order_modal_body_tbody_2 td:nth-child(3) {display: none;}
+    #table_order_modal_body_tbody_2 td:nth-child(1) ,
+    #table_order_modal_body_tbody_2 td:nth-child(2) ,
+    #table_order_modal_body_tbody_2 td:nth-child(4) { width: 33%; word-wrap: normal; }
+    #table_order_modal_body_tbody_2 td:nth-child(1) ,
+    #table_order_modal_body_tbody_2 td:nth-child(2) { text-align: center; }
+    #table_order_modal_body_tbody_2 td:nth-child(4) { text-align: right; }
+
+
+    .table_3_body td:nth-child(1) { border-top:2px solid blue; border-left:2px solid blue;border-right:2px solid blue;  }
+    .table_3_body td:nth-child(2) { border-left:2px solid blue;border-bottom:2px solid blue; border-top:0; border-right:0 }
+    .table_3_body td:nth-child(3) { border-bottom:2px solid blue; border-top:0; border-right:0}
+    .table_3_body td:nth-child(4) { border-bottom:2px solid blue; border-top:0; border-right:0}
+    .table_3_body td:nth-child(5) { border-right:2px solid blue;border-bottom:2px solid blue; border-top:0; }
+
+    .table_5_body td:nth-child(1) { border-top:2px solid blue; border-left:2px solid blue;border-right:2px solid blue;  }
+    .table_5_body td:nth-child(2) { border-left:2px solid blue;border-bottom:2px solid blue; border-top:0; border-right:0 }
+    .table_5_body td:nth-child(3) { border-bottom:2px solid blue; border-top:0; border-right:0}
+    .table_5_body td:nth-child(4) { border-right:2px solid blue;border-bottom:2px solid blue; border-top:0; }
+}
+
+@media screen and (max-width: 400px){
+    .btn_big{
+        margin: 5px 0 0 0;
+        padding: 3px;
+        width: 60px;
+        border: 1px solid;
+        border-radius: 5px;
+    }
+}
+
+@media screen and (max-width: 350px){
+    .grid-item {
+        padding:5px;
+        font-size: 14px;
+    }
+
+    .logout-btn{
+        margin-right:3px;
+    }
+
+    .order-btn{
+        margin-left:5px;
+    }
+
+    .order-container{
+        margin-left:1px;
+    }
+
+    .scrollable{
+        height:80vh;
+    }
+
+    .switch_container{
+        margin-top: 3px;
+        margin-left: 3px;
+        margin-right: 3px;
+    }
+}

@@ -1,0 +1,44 @@
+<div id="table_3_container" class="table_3_container display_off">
+    <!-- <table  class="table_3">
+        <thead class="table_3_head">
+            <tr>
+                <th>Invoice Nr.</th>
+                <th>Invoice date</th>
+                <th>Invoice cost</th>
+                <th>Status</th>
+                <th>Check </th>
+                <th>Download</th>
+            </tr>
+        </thead>
+    </table>
+    <div class="table_3_body_container">
+        <table class="table_3_body">
+            <tbody id="table_3_body_tbody">
+                {% for invoice in invoices %}
+                <tr>
+                    <td>{{ invoice.invoice_id }}</td>
+                    <td>{{ invoice.invoice_date|date:'d.m.Y' }}</td>
+                    <td>{{ invoice.invoice_price|floatformat:2 }}<span>€</span></td>
+                    <td>
+                        {% if invoice.invoice_status %}
+                            <div class="status_status blue_oval">Paid</div>
+                        {% else %}
+                            <div class="status_status red_oval">Unpaid</div>
+                        {% endif %}
+                    </td>
+                    <td><input class="info_input"  type="submit"  value="Check" /></td>
+                    {% if invoice.invoice %}
+                        <td>
+                            <a href="{{ invoice.invoice.url }}" download>
+                                <input class="info_input"  type="submit"  value="Download" />
+                            </a>
+                        </td>
+                    {% else %}
+                        <td><button class="info_input"  type="submit" disabled>Download</button></td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div> -->
+</div>

@@ -1,0 +1,13 @@
+<div class="header">
+    <button id="order" type="submit" class="btn_svg no_border display_off">
+        <img id="icon" src="../../static/images/cart.svg">
+        <span class="start"></span>
+    </button>
+    <h1 class="welcome">Welcome {{ user.first_name }}</h1>
+    <form action="logout" method="post">
+        {% csrf_token %}
+        <button id="logout" type="submit" class="btn_svg no_border logout_btn">
+            <img id="icon_2" src="../../static/images/logout.svg">
+        </button>
+    </form>
+</div>

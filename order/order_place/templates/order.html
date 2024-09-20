@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        <title>Order</title>
+        <link rel="stylesheet" href="{% static 'css/order.css' %}">
+        <link rel="icon" type="image/png" href="{% static 'images/favicon1.png' %}" >
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+        <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+    </head>
+    <body id = "body">
+        {% include "components/header.html" %}
+        {% include "components/switch.html" %}
+        <div class="wholesale">
+            {% include "components/table1.html" %}
+            {% include "components/table2.html" %}
+            {% include "components/order_modal.html" %}
+            {% include "components/table3.html" %}
+            <!-- invoice modal window -->
+            {% include "components/table4.html" %}
+            <!-- prepayment modal window -->
+            {% include "components/table5.html" %}
+            <!-- balance modal window -->
+        </div>
+        <script src="/static/js/components/table_5.js" type="text/babel"></script>
+        <script src="/static/js/components/table_3.js" type="text/babel"></script>
+        <script src="/static/js/components/table_2.js" type="text/babel"></script>
+        <script type="text/babel">
+            ReactDOM.render(
+                <Table5 />,
+                document.getElementById('table_5_container')
+            );
+        </script>
+         <script type="text/babel">
+            ReactDOM.render(
+                <Table3 />,
+                document.getElementById('table_3_container')
+            );
+        </script>
+        <script type="text/babel">
+            ReactDOM.render(
+                <Table2 />,
+                document.getElementById('table_2_container')
+            );
+        </script>
+        <script>var user = "{{ user.username }}"</script>
+        <script>window.active = "table_1"</script>
+        <script>
+            <!--Pusher.logToConsole = true;-->
+            let pusher = new Pusher("key", {
+                cluster: "eu"
+            });
+            let channel = pusher.subscribe("1857061")
+            channel.bind("message", (data) => {
+                window.active = data["message"];
+                console.log(window.active);
+                window.dispatchEvent(new Event('activeChange'));
+            });
+        </script>
+        <script src = "/static/js/init.js"></script> 
+        <script src = "/static/js/search.js"></script>
+        <script src = "/static/js/add_order_element.js"></script>
+        <script src = "/static/js/edit_order_element.js"></script>
+        <script src = "/static/js/delete_order_element.js"></script>
+        <script src = "/static/js/modal.js"></script>
+    </body>
+</html>

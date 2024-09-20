@@ -1,0 +1,69 @@
+<div class="table_4_container display_off">
+    <div class="company_headers">
+        <div class="company_requisites">
+            <div class="left_side">
+                <p class="name">Company name:</p>
+                <h3 class="value">{{ cust.customer_name }}</h3>
+            </div>
+        </div>
+        <div class="company_requisites">
+            <div class="left_side">
+                <p class="name">Company VAT:</p>
+                <h3 class="value">{{ cust.customer_vat}}</h3>
+            </div>
+            <div class="right_side">
+                <p class="name">&nbsp;</p>
+                {% if cust.customer_vat_valid %}
+                    <h3 id="vat" class="value green">Valid</h3>
+                {% else %}
+                    <h3 id="vat" class="value red">Invalid</h3>
+                {% endif %}    
+            </div>
+        </div>
+        <div class="company_requisites">
+            <div class="left_side">
+                <p class="name">Company official address:</p>
+                <h3 class="value">{{ cust.customer_address }}</h3>
+            </div>
+        </div>
+        <div class="company_requisites">
+            <div class="left_side">
+                <p class="name">Company delivery address:</p>
+                <h3 class="value">{{ cust.customer_delivery_address }}</h3>
+            </div>    
+        </div>
+        <div class="company_requisites">
+            <div class="left_side">
+                <p class="name">Email:</p>
+                <h3 class="value">{{ cust.customer_email }}</h3>
+            </div>
+            <div class="right_side">
+                <p class="name">&nbsp;</p>
+                {% if cust.customer_email_valid %}
+                    <h3 class="value green">Valid</h3>
+                {% else %}
+                    <h3 class="value red">Invalid</h3>
+                {% endif %}
+            </div>
+        </div>
+        <div class="company_requisites">
+            <div class="left_side">
+                <p class="name">Phone:</p>
+                <h3 class="value">{{ cust.customer_phone }}</h3>
+            </div>
+            <div class="right_side">
+                <p class="name">&nbsp;</p>
+                {% if cust.customer_phone_valid %}
+                    <h3 class="value green">Valid</h3>
+                {% else %}
+                    <h3 class="value red">Invalid</h3>
+                {% endif %}   
+            </div>
+        </div>
+        <div class="manager">
+            <p class="manager">Your manager:</p>
+            <p class="manager">Sergejs Petrovs</p>
+            <p class="manager">+37122115566</p>
+        </div>    
+    </div>
+</div>

@@ -1,0 +1,42 @@
+<div class = "grid-item grid_item-2">
+    <h1 class="table-header-close">Order</h1>
+    <div>
+        <table id = "phones_ordered_table" class="table-header-close">
+            <thead id = "phones_ordered_table_thead">
+                <tr>
+                    <th>Name</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+        </table>
+    
+        <div class = "scrollable-ordered">
+            <table id = "phones_ordered_table_table">   
+                <tbody id = "phones_ordered_table_tbody">
+                    {% for phone in orders %}
+                        <tr id="{{phone.item_id}}" data-order_status = "{{phone.order_status}}">
+                            <td align="left" class="given" data-given = {{phone.item_given}} ondblclick="itemGiven(event,this)">{{phone.item_name}}</td>
+                            <td align="right">{{phone.item_qty}}</td>
+                            <td align="right">{{phone.item_total_price}}€</td>
+                            <td><input type="text" size="1" data-total_qty = {{phone.item_total_qty}} data-order_qty = {{phone.item_qty}}  oninput="allowOnlyNumbers(event)" /></td>
+                            <td><input type="submit" data-phone_id={{phone.item_id}} data-order_id={{phone.order_id}} data-price={{phone.item_price}} onclick="edit_order_element(this)" value="Update" /></td>
+                            <td><input type="submit" data-phone_id={{phone.item_id}}  data-order_id={{phone.order_id}} onclick="delete_order_element(this)" value="Delete" /></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tbody id ="phones_ordered_table_tbody_2">
+                    <td>Total</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tbody>
+            </table>
+        </div>
+    </div>        
+</div>

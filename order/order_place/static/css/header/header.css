@@ -1,0 +1,34 @@
+.header{
+    display: flex;  
+    justify-content: space-between;
+    align-items: center;
+    width: 95%;
+}
+
+.welcome{
+    flex-grow: 1;
+    text-align: center;
+    margin-left: 100px;
+    font-size: clamp(10px,4vw,26px); 
+}
+
+.files_container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.load_input{
+    border: 1px solid ;
+    padding: 7px;
+    margin-right: 40px;
+    border-radius: 5px;
+}
+
+.switch_container{
+    display: flex;
+    gap: 2vw;
+    margin-bottom: 3vh;
+}
+
+

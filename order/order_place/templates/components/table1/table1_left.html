@@ -1,0 +1,35 @@
+<div class="grid-item grid_item-1">
+    <h1 class="table-header-close">Items</h1>
+    <div id="search">
+        <input id ="search_input"   type="text" placeholder="Поиск..."/>
+        <input id ="search_confirm" class="btn_big" type="submit" onclick = "reset_phones_list()" value = "Clear">
+    </div>
+    <div>
+        <table  id = "phones_list_table" class="table-header-close">
+            <thead id = "phones_list_table_thead">
+                <tr>
+                    <th>Name</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th>Order</th>
+                </tr>
+            </thead>
+        </table>  
+        <div class = "scrollable">
+            <table id = "phones_list_table_table">
+                <tbody id ="phones_list_table_tbody">
+                    {% for phone in phones %}
+                    <tr id="{{phone.0}}">
+                        <td align="left">{{ phone.1 }}</td>
+                        <td align="right">{{ phone.2 }}</td>
+                        <td align="right">{{ phone.3 }}€</td>
+                        <td ><input type="text" size="1" data-qty="{{phone.2}}" oninput="allowOnlyNumbers(event)"/></td>
+                        <td><input type="submit" data-id="{{phone.0}}" data-name="{{phone.1}}" data-qty="{{phone.2}}" data-price="{{phone.3}}" onclick = "add_order_element(this)" value="Order" /></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

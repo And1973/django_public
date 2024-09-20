@@ -1,0 +1,39 @@
+<div id="table_5_container" class="table_5_container display_off">
+    <!-- <table  class="table_5">
+        <thead class="table_5_head">
+            <tr>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Invoice sum</th>
+                <th>Transfer sum</th>
+            </tr>
+        </thead>
+    </table> -->
+    <!-- table 5 body -->
+    <!-- <div class="table_5_body_container">
+        <table class="table_5_body">
+            <tbody id="table_5_body_tbody">
+                {% for balance in balances %}
+                <tr>
+                    <td>{{ balance.date|date:'d.m.Y' }}</td>
+                    <td>{{ balance.name}}</td>
+                    {% if "PVZ"|add:user.username in balance.name %}
+                        <td>{{ balance.sum|floatformat:2 }}<span>€</span></td>
+                        <td></td>
+                    {% else %}
+                        <td></td>
+                        <td>{{ balance.sum|floatformat:2 }}<span>€</span></td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="table_5_total_cont">
+            <p class="table_5_total_left">Total:</p>
+            <p class="table_5_total_right">{{total_balance|floatformat:2}}<span>€</span></p>
+        </div>
+        <div class="table_5_total_btn">
+            <button class="btn_big balance_btn"  type="submit">Download</button>
+        </div>
+    </div> -->
+</div>

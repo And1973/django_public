@@ -1,0 +1,104 @@
+.logout-btn{
+    margin-right: 30px;
+}
+
+.btn_big,
+.balance_btn{
+    padding: 10px;
+    width: 100px;
+    height: 45px;
+    border: 1px solid;
+    border-radius: 5px;
+}
+
+.no_border{
+    border: 0;
+    background-color: white;
+}
+
+#icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+}
+
+#icon_2 {
+    width: 25px;
+    height: 25px;
+}
+
+.btn_svg:hover {
+    transform: scale(1.2);
+    transition: 0.2s;
+}
+
+.btn_svg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info_input{
+    width: clamp(50px,100%,80px);
+    font-size: clamp(10px, 50vw, 12px);
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    height:27px; 
+}
+
+.info_input:disabled {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden; 
+}
+
+.status_status {
+    width: 60%;
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    color: white;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;    
+}
+
+
+@keyframes colorChange {
+    0% { 
+        color: rgb(112, 255, 99);
+        transform: scale(1.3); 
+    }
+    50% { 
+        color: rgb(3, 143, 56);
+        transform: scale(1.2); 
+    }
+    100% { 
+        color: black; 
+        transform: scale(1); 
+    }
+}
+
+@keyframes moveRight {
+    from {
+        transform: translateX(-20px);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+
+.colorChange {
+    animation: colorChange 2s ease forwards;
+}
+
+.fillChange {
+    animation: moveRight 2s ease forwards;
+}

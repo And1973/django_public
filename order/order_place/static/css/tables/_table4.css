@@ -1,0 +1,51 @@
+.table_4_container {
+    width: 70vw;
+    height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+}
+
+.company_headers{
+    width: 80%;
+}
+
+.company_requisites{
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    margin: 1px;
+}
+
+.margin{
+    flex: 1;
+    /* margin-left: 120px; */
+}
+
+.status{
+    text-align: left;
+}
+
+.green{
+    color: #07880c;
+    font-size: 18px;
+
+}
+
+.margin2{
+    overflow: hidden;
+    word-wrap: break-word;
+}
+
+.red{
+    color:  #cc2727;
+    font-size: 18px;
+}
+
+.btn_margin{
+    margin-top: 50px;
+}
+
+.manager{
+    margin-top: 50px;
+}
