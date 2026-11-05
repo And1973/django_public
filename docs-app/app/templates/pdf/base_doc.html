@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="utf-8">
+  <style>
+    @font-face {
+      font-family: "DejaVu Sans";
+      src: url("static/fonts/DejaVuSans.ttf");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "DejaVu Sans";
+      src: url("static/fonts/DejaVuSans-Bold.ttf");
+      font-weight: 700;
+      font-style: normal;
+    }
+    @page { size: A4; margin: 16mm; }
+    body {
+      font-family: "DejaVu Sans", sans-serif;
+      font-size: 11px;
+      color: #1c2429;
+      line-height: 1.35;
+    }
+    h1 {
+      font-size: 22px;
+      margin: 0 0 8px;
+      letter-spacing: 0.02em;
+      font-weight: 700;
+    }
+    .doc-header {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 14px;
+    }
+    .doc-header td {
+      vertical-align: top;
+      padding: 0;
+    }
+    .doc-header .seller {
+      width: 58%;
+      padding-right: 12px;
+    }
+    .doc-header .title-block {
+      width: 42%;
+      text-align: right;
+    }
+    .doc-header .meta {
+      color: #445055;
+      margin: 0;
+    }
+    .label {
+      font-weight: 700;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: #5c6b73;
+    }
+    .buyer-box {
+      margin-bottom: 16px;
+      padding: 0;
+      background: none;
+      border: none;
+    }
+    table.lines {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+    }
+    table.lines th, table.lines td {
+      border: 1px solid #cfc5b4;
+      padding: 5px 6px;
+      text-align: left;
+    }
+    table.lines th {
+      background: #1f5c4d;
+      color: #fff;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+    table.lines td.num { text-align: right; white-space: nowrap; }
+    .totals {
+      width: 280px;
+      margin-left: auto;
+      border-collapse: collapse;
+    }
+    .totals td {
+      padding: 3px 0;
+      vertical-align: baseline;
+    }
+    .totals td.label-cell {
+      text-align: left;
+      padding-right: 16px;
+      white-space: nowrap;
+    }
+    .totals td.num {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .totals .grand td {
+      font-weight: 700;
+      font-size: 13px;
+      border-top: 1px solid #cfc5b4;
+      padding-top: 6px;
+    }
+    .footer-block {
+      margin-top: 16px;
+      clear: both;
+    }
+    .amount-words {
+      margin: 0 0 8px;
+    }
+    .legal-line {
+      margin: 0;
+      color: #445055;
+      font-size: 10px;
+    }
+    .notes { margin-top: 12px; color: #445055; }
+    .sign { margin-top: 28px; }
+  </style>
+</head>
+<body>
+  {% block content %}{% endblock %}
+</body>
+</html>

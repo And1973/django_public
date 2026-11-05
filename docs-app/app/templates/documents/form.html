@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Jauns dokuments — Rēķini un pavadzīmes{% endblock %}
+{% block content %}
+<section class="panel stack">
+  <div>
+    <h1>Jauns dokuments</h1>
+    <p class="lead">Izvēlieties tipu un pārdevēju, aizpildiet pircēju un rindas.</p>
+  </div>
+
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+  <div class="form-grid">
+    <label>
+      Dokumenta tips
+      <select id="doc-type-switch" onchange="location.href='/documents/new?doc_type='+this.value{% if selected_seller %}+'&seller_id={{ selected_seller.id }}'{% endif %}">
+        <option value="invoice" {% if doc_type == 'invoice' %}selected{% endif %}>Rēķins</option>
+        <option value="delivery_note" {% if doc_type == 'delivery_note' %}selected{% endif %}>Pavadzīme</option>
+      </select>
+    </label>
+  </div>
+
+  <h2 class="section-title">1. Pārdevējs</h2>
+  <div class="grid-3">
+    {% for s in sellers %}
+    <a class="btn btn-seller {% if selected_seller and selected_seller.id == s.id %}is-selected{% endif %}"
+       href="/documents/new?doc_type={{ doc_type }}&seller_id={{ s.id }}">
+      <strong>{{ s.name }}</strong>
+      <span>{{ s.reg_nr }} · {{ vat_label(s.vat_nr) }}</span>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% if not selected_seller %}
+  <p class="muted">Nospiediet vienu no trim pārdevējiem, lai turpinātu.</p>
+  {% else %}
+  <form method="post" action="/documents/new" class="stack" id="doc-form">
+    <input type="hidden" name="doc_type" value="{{ doc_type }}">
+    <input type="hidden" name="seller_id" value="{{ selected_seller.id }}">
+
+    <div class="panel" style="padding:1rem;background:var(--bg)">
+      <strong>{{ selected_seller.name }}</strong>
+      <div class="muted">
+        Reģ. Nr. {{ selected_seller.reg_nr }} · PVN {{ vat_label(selected_seller.vat_nr) }}<br>
+        {{ selected_seller.address }}<br>
+        {{ selected_seller.bank }} · {{ selected_seller.iban }}
+        {% if selected_seller.phone %}<br>{{ selected_seller.phone }}{% endif %}
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Datums</h2>
+    <div class="form-grid">
+      <label>
+        Dokumenta datums
+        <input type="date" name="doc_date" value="{{ today }}" required>
+      </label>
+      {% if doc_type == 'invoice' %}
+      <label>
+        Apmaksas termiņš
+        <input type="date" name="due_date" value="{{ due_default }}">
+      </label>
+      {% endif %}
+    </div>
+
+    <h2 class="section-title">3. Pircējs</h2>
+    <label class="full">
+      Meklēt saglabātu pircēju
+      <input type="search" id="buyer-search" placeholder="Nosaukums, reģ. nr. vai PVN nr." autocomplete="off">
+    </label>
+    <ul id="buyer-results" class="buyer-results"></ul>
+    <input type="hidden" name="buyer_id" id="buyer_id" value="{{ form.get('buyer_id', '') if form else '' }}">
+
+    <div class="form-grid">
+      <label class="full">
+        Nosaukums *
+        <input name="buyer_name" id="buyer_name" required value="{{ form.get('buyer_name', '') if form else '' }}">
+      </label>
+      <label>
+        Reģ. Nr.
+        <input name="buyer_reg_nr" id="buyer_reg_nr" value="{{ form.get('buyer_reg_nr', '') if form else '' }}">
+      </label>
+      <label>
+        PVN Nr.
+        <input name="buyer_vat_nr" id="buyer_vat_nr" value="{{ form.get('buyer_vat_nr', '') if form else '' }}">
+      </label>
+      <label class="full">
+        Adrese
+        <input name="buyer_address" id="buyer_address" value="{{ form.get('buyer_address', '') if form else '' }}">
+      </label>
+      <label>
+        Tālrunis
+        <input name="buyer_phone" id="buyer_phone" value="{{ form.get('buyer_phone', '') if form else '' }}">
+      </label>
+      <label>
+        E-pasts
+        <input name="buyer_email" id="buyer_email" type="email" value="{{ form.get('buyer_email', '') if form else '' }}">
+      </label>
+      <label class="checkbox full">
+        <input type="checkbox" name="save_buyer" checked>
+        Saglabāt pircēju atkārtotai izmantošanai
+      </label>
+    </div>
+
+    <h2 class="section-title">4. Rindas</h2>
+    {% if products %}
+    <label>
+      Pievienot no kataloga (neobligāti)
+      <select id="product-pick">
+        <option value="">— izvēlieties —</option>
+        {% for p in products %}
+        <option value="{{ p.id }}"
+                data-name="{{ p.name }}"
+                data-unit="{{ p.unit }}"
+                data-price="{{ p.price }}"
+                data-vat="{{ p.vat_rate }}">{{ p.name }} ({{ '%.2f'|format(p.price) }} €)</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% endif %}
+
+    <div style="overflow-x:auto">
+      <table class="lines-table">
+        <thead>
+          <tr>
+            <th>Nosaukums</th>
+            <th>Mērv.</th>
+            <th>Daudz.</th>
+            <th>Cena</th>
+            <th>PVN %</th>
+            <th>Summa</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="lines-body">
+          <tr>
+            <td><input name="line_description" required placeholder="Prece / pakalpojums"></td>
+            <td><input name="line_unit" value="gab."></td>
+            <td><input name="line_quantity" type="number" step="0.001" min="0" value="1"></td>
+            <td><input name="line_unit_price" type="number" step="0.01" min="0" value="0"></td>
+            <td><input name="line_vat_rate" type="number" step="0.01" min="0" value="{{ vat_default }}"></td>
+            <td class="line-sum">0.00</td>
+            <td><button type="button" class="btn btn-ghost remove-line" title="Dzēst">×</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <button type="button" class="btn btn-secondary" id="add-line">+ Pievienot rindu</button>
+
+    <div class="totals">
+      <div><span class="muted">Summa bez PVN</span><span><span id="total-sub">0.00</span> EUR</span></div>
+      <div><span class="muted">PVN</span><span><span id="total-vat">0.00</span> EUR</span></div>
+      <div class="grand"><span>Kopā</span><span><span id="total-all">0.00</span> EUR</span></div>
+    </div>
+
+    <label class="full">
+      Piezīmes
+      <textarea name="notes" rows="2">{{ form.get('notes', '') if form else '' }}</textarea>
+    </label>
+
+    <div class="actions-row">
+      <button class="btn" type="submit">Saglabāt un atvērt PDF</button>
+      <a class="btn btn-secondary" href="/documents">Atcelt</a>
+    </div>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

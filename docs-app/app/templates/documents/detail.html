@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ doc.number }} — Rēķini un pavadzīmes{% endblock %}
+{% block content %}
+<section class="stack">
+  <div class="panel">
+    <div class="topbar" style="margin-bottom:0.5rem">
+      <div>
+        <h1>{{ doc.number }}</h1>
+        <p class="lead" style="margin:0">
+          {% if doc.doc_type == 'invoice' %}Rēķins{% else %}Pavadzīme{% endif %}
+          · {{ doc.doc_date }}
+          · {{ '%.2f'|format(doc.total) }} {{ doc.currency }}
+        </p>
+      </div>
+      <div class="nav-actions">
+        <a class="btn" href="/documents/{{ doc.id }}/pdf?download=1">Lejupielādēt PDF</a>
+        <a class="btn btn-secondary" href="/documents/new?doc_type={{ doc.doc_type }}">Jauns tāds pats</a>
+        <a class="btn btn-ghost" href="/documents">Saraksts</a>
+      </div>
+    </div>
+    <p class="muted" style="margin:0.5rem 0 0">
+      Pārdevējs: {{ doc.seller_name }} · Pircējs: {{ doc.buyer_name }}
+      · PDF dzinējs: {{ pdf_engine }}
+    </p>
+  </div>
+
+  <div class="panel">
+    <h2>PDF priekšskatījums</h2>
+    <iframe class="preview-frame" title="PDF priekšskatījums" src="/documents/{{ doc.id }}/pdf"></iframe>
+  </div>
+</section>
+{% endblock %}
