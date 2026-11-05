@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Dokumenti — Rēķini un pavadzīmes{% endblock %}
+{% block content %}
+<section class="panel">
+  <div class="topbar" style="margin-bottom:1rem">
+    <div>
+      <h1>Dokumenti</h1>
+      <p class="lead" style="margin:0">Rēķini un pavadzīmes — filtrējiet pēc tipa vai datuma.</p>
+    </div>
+    <a class="btn" href="/documents/new">Jauns dokuments</a>
+  </div>
+
+  <form class="filters" method="get" action="/documents">
+    <label>
+      Tips
+      <select name="doc_type">
+        <option value="">Visi</option>
+        <option value="invoice" {% if filters.doc_type == 'invoice' %}selected{% endif %}>Rēķins</option>
+        <option value="delivery_note" {% if filters.doc_type == 'delivery_note' %}selected{% endif %}>Pavadzīme</option>
+      </select>
+    </label>
+    <label>
+      No
+      <input type="date" name="date_from" value="{{ filters.date_from }}">
+    </label>
+    <label>
+      Līdz
+      <input type="date" name="date_to" value="{{ filters.date_to }}">
+    </label>
+    <label>
+      Meklēt
+      <input type="search" name="q" value="{{ filters.q }}" placeholder="Nr., pircējs, pārdevējs">
+    </label>
+    <button class="btn btn-secondary" type="submit">Filtrēt</button>
+  </form>
+
+  {% if documents %}
+  <table>
+    <thead>
+      <tr>
+        <th>Nr.</th>
+        <th>Tips</th>
+        <th>Datums</th>
+        <th>Pircējs</th>
+        <th>Pārdevējs</th>
+        <th>Summa</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in documents %}
+      <tr>
+        <td><a href="/documents/{{ d.id }}"><strong>{{ d.number }}</strong></a></td>
+        <td>{% if d.doc_type == 'invoice' %}Rēķins{% else %}Pavadzīme{% endif %}</td>
+        <td>{{ d.doc_date }}</td>
+        <td>{{ d.buyer_name }}</td>
+        <td>{{ d.seller_name }}</td>
+        <td>{{ '%.2f'|format(d.total) }} {{ d.currency }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Nav dokumentu. Izveidojiet pirmo rēķinu vai pavadzīmi.</p>
+  {% endif %}
+</section>
+{% endblock %}

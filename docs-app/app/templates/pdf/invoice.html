@@ -1,0 +1,69 @@
+{% extends "pdf/base_doc.html" %}
+{% block content %}
+<h1>RĒĶINS</h1>
+<div class="meta">
+  Nr. <strong>{{ doc.number }}</strong>
+  &nbsp;·&nbsp; Datums: {{ doc.doc_date }}
+  {% if doc.due_date %}&nbsp;·&nbsp; Apmaksas termiņš: {{ doc.due_date }}{% endif %}
+</div>
+
+<table class="parties">
+  <tr>
+    <td>
+      <div class="label">Pārdevējs</div>
+      <strong>{{ doc.seller_name }}</strong><br>
+      {% if doc.seller_reg_nr %}Reģ. Nr.: {{ doc.seller_reg_nr }}<br>{% endif %}
+      {% if doc.seller_vat_nr %}PVN Nr.: {{ doc.seller_vat_nr }}<br>{% endif %}
+      {% if doc.seller_address %}{{ doc.seller_address }}<br>{% endif %}
+      {% if doc.seller_bank %}Banka: {{ doc.seller_bank }}<br>{% endif %}
+      {% if doc.seller_iban %}IBAN: {{ doc.seller_iban }}<br>{% endif %}
+      {% if doc.seller_phone %}{{ doc.seller_phone }}{% endif %}
+      {% if doc.seller_email %} · {{ doc.seller_email }}{% endif %}
+    </td>
+    <td>
+      <div class="label">Pircējs</div>
+      <strong>{{ doc.buyer_name }}</strong><br>
+      {% if doc.buyer_reg_nr %}Reģ. Nr.: {{ doc.buyer_reg_nr }}<br>{% endif %}
+      {% if doc.buyer_vat_nr %}PVN Nr.: {{ doc.buyer_vat_nr }}{% if doc.buyer_vat_checked %} (pārbaudīts){% endif %}<br>{% endif %}
+      {% if doc.buyer_address %}{{ doc.buyer_address }}<br>{% endif %}
+      {% if doc.buyer_phone %}{{ doc.buyer_phone }}{% endif %}
+      {% if doc.buyer_email %} · {{ doc.buyer_email }}{% endif %}
+    </td>
+  </tr>
+</table>
+
+<table class="lines">
+  <thead>
+    <tr>
+      <th style="width:28px">Nr.</th>
+      <th>Nosaukums</th>
+      <th style="width:48px">Mērv.</th>
+      <th style="width:56px">Daudz.</th>
+      <th style="width:64px">Cena</th>
+      <th style="width:48px">PVN %</th>
+      <th style="width:72px">Summa</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for line in doc.lines %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ line.description }}</td>
+      <td>{{ line.unit }}</td>
+      <td class="num">{{ line.quantity }}</td>
+      <td class="num">{{ '%.2f'|format(line.unit_price) }}</td>
+      <td class="num">{{ line.vat_rate }}</td>
+      <td class="num">{{ '%.2f'|format(line.line_subtotal) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<table class="totals">
+  <tr><td>Bez PVN</td><td class="num">{{ '%.2f'|format(doc.subtotal) }} {{ doc.currency }}</td></tr>
+  <tr><td>PVN</td><td class="num">{{ '%.2f'|format(doc.vat_total) }} {{ doc.currency }}</td></tr>
+  <tr class="grand"><td>Kopā</td><td class="num">{{ '%.2f'|format(doc.total) }} {{ doc.currency }}</td></tr>
+</table>
+
+{% if doc.notes %}<div class="notes"><strong>Piezīmes:</strong> {{ doc.notes }}</div>{% endif %}
+{% endblock %}
