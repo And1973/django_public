@@ -3,38 +3,65 @@
 <head>
   <meta charset="utf-8">
   <style>
+    @font-face {
+      font-family: "DejaVu Sans";
+      src: url("static/fonts/DejaVuSans.ttf");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "DejaVu Sans";
+      src: url("static/fonts/DejaVuSans-Bold.ttf");
+      font-weight: 700;
+      font-style: normal;
+    }
     @page { size: A4; margin: 16mm; }
     body {
-      font-family: DejaVu Sans, Liberation Sans, Arial, sans-serif;
+      font-family: "DejaVu Sans", sans-serif;
       font-size: 11px;
       color: #1c2429;
       line-height: 1.35;
     }
     h1 {
-      font-size: 20px;
-      margin: 0 0 6px;
+      font-size: 22px;
+      margin: 0 0 8px;
       letter-spacing: 0.02em;
+      font-weight: 700;
     }
-    .meta { margin-bottom: 14px; color: #445055; }
-    .parties {
+    .doc-header {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
-    .parties td {
-      width: 50%;
+    .doc-header td {
       vertical-align: top;
-      border: 1px solid #cfc5b4;
-      padding: 8px 10px;
-      background: #faf7f1;
+      padding: 0;
     }
-    .parties .label {
+    .doc-header .seller {
+      width: 58%;
+      padding-right: 12px;
+    }
+    .doc-header .title-block {
+      width: 42%;
+      text-align: right;
+    }
+    .doc-header .meta {
+      color: #445055;
+      margin: 0;
+    }
+    .label {
       font-weight: 700;
       margin-bottom: 4px;
       text-transform: uppercase;
       font-size: 10px;
       letter-spacing: 0.04em;
       color: #5c6b73;
+    }
+    .buyer-box {
+      border: 1px solid #cfc5b4;
+      padding: 8px 10px;
+      background: #faf7f1;
+      margin-bottom: 16px;
     }
     table.lines {
       width: 100%;

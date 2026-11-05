@@ -1,3 +1,18 @@
+@font-face {
+  font-family: "DejaVu Sans";
+  src: url("/static/fonts/DejaVuSans.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "DejaVu Sans";
+  src: url("/static/fonts/DejaVuSans-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg: #f3efe6;
   --bg-accent: #e7dfd0;
@@ -11,8 +26,8 @@
   --focus: #2a7a66;
   --shadow: 0 10px 30px rgba(28, 36, 41, 0.08);
   --radius: 14px;
-  --font: "Source Sans 3", "Segoe UI", sans-serif;
-  --display: "Fraunces", Georgia, serif;
+  --font: "DejaVu Sans", "Segoe UI", sans-serif;
+  --display: "DejaVu Sans", Georgia, serif;
 }
 
 * { box-sizing: border-box; }

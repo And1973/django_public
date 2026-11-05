@@ -4,49 +4,61 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import Seller
+from app.textutil import nfc
 
-# Placeholder rekvizīti — replace with real company details before production use.
-PLACEHOLDER_SELLERS = [
+# Real company rekvizīti (synced on every startup by sort_order).
+SELLERS = [
     {
-        "name": "SIA Ziemeļu Tirdzniecība",
-        "reg_nr": "40003000001",
-        "vat_nr": "LV40003000001",
-        "address": "Brīvības iela 1, Rīga, LV-1010",
-        "bank": "Swedbank AS",
-        "iban": "LV00HABA0000000000001",
-        "phone": "+371 20000001",
-        "email": "info@ziemelu-demo.lv",
+        "name": nfc("Madeks SIA"),
+        "reg_nr": "40203446165",
+        "vat_nr": "LV40203446165",
+        "address": nfc("Rīga, Matīsa iela 91 - 17, LV-1009"),
+        "bank": "Swedbank",
+        "iban": "LV04HABA0551053848137",
+        "phone": nfc("Valdes loceklis Ēriks Zauers"),
+        "email": "",
         "sort_order": 1,
     },
     {
-        "name": "SIA Rīgas Piegādes",
-        "reg_nr": "40003000002",
-        "vat_nr": "LV40003000002",
-        "address": "Maskavas iela 240, Rīga, LV-1063",
-        "bank": "SEB banka AS",
-        "iban": "LV00UNLA0000000000002",
-        "phone": "+371 20000002",
-        "email": "office@rigas-piegades-demo.lv",
+        "name": nfc("Zauers Classic Cars SIA"),
+        "reg_nr": "40203644857",
+        "vat_nr": "LV40203644857",
+        "address": nfc("Viestura prospekts 49 – 18, Rīga, LV-1005"),
+        "bank": "Swedbank",
+        "iban": "LV45HABA0551060964677",
+        "phone": nfc("Ēriks Zauers"),
+        "email": "",
         "sort_order": 2,
     },
     {
-        "name": "IK Latgales Preces",
-        "reg_nr": "40003000003",
-        "vat_nr": "LV40003000003",
-        "address": "Rīgas iela 15, Daugavpils, LV-5401",
-        "bank": "Luminor Bank AS",
-        "iban": "LV00RIKO0000000000003",
-        "phone": "+371 20000003",
-        "email": "veikals@latgale-demo.lv",
+        "name": nfc("Zauers Tenisa Klubs"),
+        "reg_nr": "40008266820",
+        "vat_nr": "",  # nav PVN
+        "address": nfc("Rīga, Viestura prospekts 49 - 18, LV-1005"),
+        "bank": "Swedbank",
+        "iban": "LV44HABA0551044044209",
+        "phone": nfc("Ēriks Zauers"),
+        "email": "",
         "sort_order": 3,
     },
 ]
 
 
 def seed_sellers(db: Session) -> None:
-    existing = db.scalar(select(Seller).limit(1))
-    if existing:
-        return
-    for row in PLACEHOLDER_SELLERS:
-        db.add(Seller(**row, is_active=True))
+    """Insert or update the three canonical sellers; deactivate any extras."""
+    keep_ids: list[int] = []
+    for row in SELLERS:
+        seller = db.scalar(select(Seller).where(Seller.sort_order == row["sort_order"]))
+        if seller is None:
+            seller = Seller(is_active=True)
+            db.add(seller)
+        for key, value in row.items():
+            setattr(seller, key, value)
+        seller.is_active = True
+        db.flush()
+        keep_ids.append(seller.id)
+
+    extras = db.scalars(select(Seller).where(Seller.id.not_in(keep_ids))).all()
+    for extra in extras:
+        extra.is_active = False
     db.commit()

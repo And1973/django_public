@@ -32,15 +32,15 @@ Noklusējuma parole demom (ja `.env` nav): `docs-demo`.
 2. Dokumentu saraksts (filtrs: tips / datums / meklēšana)
 3. Jauns dokuments: tips → 3 pārdevēju pogas → pircējs → rindas → automātiskās summas → saglabāt → PDF priekšskatījums / lejupielāde
 
-## Placeholder pārdevēji
+## Pārdevēji (seed)
 
-Pirmajā startā tiek ielādēti 3 demo pārdevēji (izdomāti rekvizīti):
+Pie starta sinhronizējas 3 pārdevēji (`app/services/seed.py`):
 
-1. SIA Ziemeļu Tirdzniecība  
-2. SIA Rīgas Piegādes  
-3. IK Latgales Preces  
+1. **Madeks SIA** — PVN LV40203446165, Matīsa iela 91-17, Swedbank  
+2. **Zauers Classic Cars SIA** — PVN LV40203644857, Viestura prospekts 49-18  
+3. **Zauers Tenisa Klubs** — reģ. 40008266820, **nav PVN**
 
-Pirms ražošanas lietojuma aizstājiet tos ar reāliem rekvizītiem (DB vai `app/services/seed.py`).
+UI un PDF izmanto komplektēto **DejaVu Sans** (`app/static/fonts/`); teksts normalizēts uz NFC.
 
 ## Tehniskās piezīmes
 

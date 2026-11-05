@@ -7,16 +7,25 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.config import BASE_DIR
+from app.textutil import nfc, vat_label
 
 logger = logging.getLogger(__name__)
 
-TEMPLATES_DIR = BASE_DIR / "app" / "templates"
+APP_DIR = BASE_DIR / "app"
+TEMPLATES_DIR = APP_DIR / "templates"
+FONTS_DIR = APP_DIR / "static" / "fonts"
+FONT_REGULAR = FONTS_DIR / "DejaVuSans.ttf"
+FONT_BOLD = FONTS_DIR / "DejaVuSans-Bold.ttf"
+
 _env = Environment(
     loader=FileSystemLoader(str(TEMPLATES_DIR)),
     autoescape=select_autoescape(["html", "xml"]),
 )
+_env.globals["vat_label"] = vat_label
+_env.filters["nfc"] = nfc
 
 _WEASY_OK: bool | None = None
+_REPORTLAB_FONTS_READY = False
 
 
 def weasyprint_available() -> bool:
@@ -33,20 +42,64 @@ def weasyprint_available() -> bool:
     return _WEASY_OK
 
 
+def _ensure_reportlab_fonts() -> str:
+    """Register DejaVu Sans for ReportLab; return font family name."""
+    global _REPORTLAB_FONTS_READY
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+
+    if not _REPORTLAB_FONTS_READY:
+        pdfmetrics.registerFont(TTFont("DejaVuSans", str(FONT_REGULAR)))
+        pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", str(FONT_BOLD)))
+        _REPORTLAB_FONTS_READY = True
+    return "DejaVuSans"
+
+
+def _nfc_doc_fields(document: Any) -> None:
+    for attr in (
+        "number",
+        "seller_name",
+        "seller_reg_nr",
+        "seller_vat_nr",
+        "seller_address",
+        "seller_bank",
+        "seller_iban",
+        "seller_phone",
+        "seller_email",
+        "buyer_name",
+        "buyer_reg_nr",
+        "buyer_vat_nr",
+        "buyer_address",
+        "buyer_phone",
+        "buyer_email",
+        "notes",
+        "currency",
+    ):
+        if hasattr(document, attr):
+            setattr(document, attr, nfc(getattr(document, attr)))
+    for line in getattr(document, "lines", []) or []:
+        if hasattr(line, "description"):
+            line.description = nfc(line.description)
+        if hasattr(line, "unit"):
+            line.unit = nfc(line.unit)
+
+
 def render_document_html(document: Any) -> str:
+    _nfc_doc_fields(document)
     template_name = (
         "pdf/invoice.html"
         if document.doc_type == "invoice"
         else "pdf/delivery_note.html"
     )
     template = _env.get_template(template_name)
-    return template.render(doc=document, engine="weasyprint")
+    return template.render(doc=document, engine="weasyprint", vat_label=vat_label)
 
 
 def html_to_pdf_weasy(html: str) -> bytes:
     from weasyprint import HTML
 
-    return HTML(string=html, base_url=str(TEMPLATES_DIR)).write_pdf()
+    # base_url = app/ so url("static/fonts/...") resolves
+    return HTML(string=html, base_url=str(APP_DIR)).write_pdf()
 
 
 def document_to_pdf_reportlab(document: Any) -> bytes:
@@ -55,6 +108,10 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
     from reportlab.lib.units import mm
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    _nfc_doc_fields(document)
+    font = _ensure_reportlab_fonts()
+    font_bold = "DejaVuSans-Bold"
 
     buffer = io.BytesIO()
     doc_pdf = SimpleDocTemplate(
@@ -69,73 +126,98 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
     title_style = ParagraphStyle(
         "TitleLV",
         parent=styles["Heading1"],
+        fontName=font_bold,
         fontSize=16,
-        spaceAfter=8,
+        spaceAfter=6,
+        alignment=2,  # right
     )
-    normal = ParagraphStyle("BodyLV", parent=styles["Normal"], fontSize=9, leading=12)
-    small = ParagraphStyle("SmallLV", parent=styles["Normal"], fontSize=8, leading=10)
+    normal = ParagraphStyle(
+        "BodyLV", parent=styles["Normal"], fontName=font, fontSize=9, leading=12
+    )
+    normal_right = ParagraphStyle(
+        "BodyLVRight", parent=normal, alignment=2
+    )
+    small = ParagraphStyle(
+        "SmallLV", parent=styles["Normal"], fontName=font, fontSize=8, leading=10
+    )
+    small_bold = ParagraphStyle(
+        "SmallLVBold", parent=small, fontName=font_bold
+    )
+    label = ParagraphStyle(
+        "LabelLV",
+        parent=small,
+        fontName=font_bold,
+        textColor=colors.Color(0.36, 0.42, 0.45),
+        fontSize=8,
+        spaceAfter=2,
+    )
 
     is_invoice = document.doc_type == "invoice"
-    title = "RĒĶINS" if is_invoice else "PAVADZĪME"
+    title = nfc("RĒĶINS") if is_invoice else nfc("PAVADZĪME")
 
-    story: list[Any] = [
-        Paragraph(title, title_style),
-        Paragraph(f"Nr. <b>{document.number}</b> &nbsp;&nbsp; Datums: {document.doc_date}", normal),
+    seller_bits = [
+        f"<b>{nfc(document.seller_name)}</b>",
+        f"Reģ. Nr.: {nfc(document.seller_reg_nr)}" if document.seller_reg_nr else "",
+        f"PVN Nr.: {vat_label(document.seller_vat_nr)}",
+        nfc(document.seller_address),
+        f"Banka: {nfc(document.seller_bank)}" if document.seller_bank else "",
+        f"IBAN: {nfc(document.seller_iban)}" if document.seller_iban else "",
+        nfc(document.seller_phone),
+        nfc(document.seller_email),
+    ]
+    title_bits = [
+        f"<font size='16'><b>{title}</b></font>",
+        f"Nr. <b>{nfc(document.number)}</b>",
+        f"Datums: {document.doc_date}",
     ]
     if is_invoice and document.due_date:
-        story.append(Paragraph(f"Apmaksas termiņš: {document.due_date}", normal))
-    story.append(Spacer(1, 8))
+        title_bits.append(f"Apmaksas termiņš: {document.due_date}")
 
-    parties = [
+    header = Table(
         [
-            Paragraph("<b>Pārdevējs / Izsniedzējs</b>", small),
-            Paragraph("<b>Pircējs / Saņēmējs</b>", small),
+            [
+                [
+                    Paragraph(nfc("Pārdevējs") if is_invoice else nfc("Izsniedzējs"), label),
+                    Paragraph("<br/>".join(filter(None, seller_bits)), small),
+                ],
+                [Paragraph("<br/>".join(title_bits), normal_right)],
+            ]
         ],
-        [
-            Paragraph(
-                "<br/>".join(
-                    filter(
-                        None,
-                        [
-                            document.seller_name,
-                            f"Reģ. Nr.: {document.seller_reg_nr}" if document.seller_reg_nr else "",
-                            f"PVN Nr.: {document.seller_vat_nr}" if document.seller_vat_nr else "",
-                            document.seller_address,
-                            f"Banka: {document.seller_bank}" if document.seller_bank else "",
-                            f"IBAN: {document.seller_iban}" if document.seller_iban else "",
-                            document.seller_phone,
-                            document.seller_email,
-                        ],
-                    )
-                ),
-                small,
-            ),
-            Paragraph(
-                "<br/>".join(
-                    filter(
-                        None,
-                        [
-                            document.buyer_name,
-                            f"Reģ. Nr.: {document.buyer_reg_nr}" if document.buyer_reg_nr else "",
-                            f"PVN Nr.: {document.buyer_vat_nr}" if document.buyer_vat_nr else "",
-                            document.buyer_address,
-                            document.buyer_phone,
-                            document.buyer_email,
-                        ],
-                    )
-                ),
-                small,
-            ),
-        ],
-    ]
-    party_table = Table(parties, colWidths=[85 * mm, 85 * mm])
-    party_table.setStyle(
+        colWidths=[100 * mm, 70 * mm],
+    )
+    header.setStyle(
         TableStyle(
             [
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
+    )
+
+    buyer_bits = [
+        f"<b>{nfc(document.buyer_name)}</b>",
+        f"Reģ. Nr.: {nfc(document.buyer_reg_nr)}" if document.buyer_reg_nr else "",
+        f"PVN Nr.: {vat_label(document.buyer_vat_nr)}"
+        + (" (pārbaudīts)" if document.buyer_vat_nr and document.buyer_vat_checked else ""),
+        nfc(document.buyer_address),
+        nfc(document.buyer_phone),
+        nfc(document.buyer_email),
+    ]
+    buyer_table = Table(
+        [
+            [
+                Paragraph(nfc("Pircējs") if is_invoice else nfc("Saņēmējs"), label),
+            ],
+            [Paragraph("<br/>".join(filter(None, buyer_bits)), small)],
+        ],
+        colWidths=[170 * mm],
+    )
+    buyer_table.setStyle(
+        TableStyle(
+            [
                 ("BOX", (0, 0), (-1, -1), 0.4, colors.grey),
-                ("INNERGRID", (0, 0), (-1, -1), 0.3, colors.lightgrey),
-                ("BACKGROUND", (0, 0), (-1, 0), colors.Color(0.93, 0.93, 0.93)),
+                ("BACKGROUND", (0, 0), (-1, -1), colors.Color(0.98, 0.97, 0.94)),
                 ("LEFTPADDING", (0, 0), (-1, -1), 6),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 6),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
@@ -143,17 +225,17 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
             ]
         )
     )
-    story.append(party_table)
-    story.append(Spacer(1, 10))
 
-    header = ["Nr.", "Nosaukums", "Mērv.", "Daudz.", "Cena", "PVN %", "Summa"]
-    data: list[list[Any]] = [header]
+    story: list[Any] = [header, Spacer(1, 10), buyer_table, Spacer(1, 10)]
+
+    table_header = ["Nr.", nfc("Nosaukums"), nfc("Mērv."), nfc("Daudz."), "Cena", "PVN %", "Summa"]
+    data: list[list[Any]] = [table_header]
     for idx, line in enumerate(document.lines, start=1):
         data.append(
             [
                 str(idx),
-                Paragraph(line.description, small),
-                line.unit,
+                Paragraph(nfc(line.description), small),
+                nfc(line.unit),
                 f"{line.quantity:g}",
                 f"{line.unit_price:.2f}",
                 f"{line.vat_rate:g}",
@@ -165,8 +247,10 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
     lines_table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.Color(0.2, 0.25, 0.3)),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.Color(0.12, 0.36, 0.30)),
                 ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), font_bold),
+                ("FONTNAME", (0, 1), (-1, -1), font),
                 ("FONTSIZE", (0, 0), (-1, -1), 8),
                 ("GRID", (0, 0), (-1, -1), 0.3, colors.grey),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -179,17 +263,32 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
     )
     story.append(lines_table)
     story.append(Spacer(1, 8))
-    story.append(Paragraph(f"Bez PVN: <b>{document.subtotal:.2f} {document.currency}</b>", normal))
-    story.append(Paragraph(f"PVN: <b>{document.vat_total:.2f} {document.currency}</b>", normal))
-    story.append(Paragraph(f"Kopā: <b>{document.total:.2f} {document.currency}</b>", title_style))
+    story.append(
+        Paragraph(
+            f"Bez PVN: <b>{document.subtotal:.2f} {document.currency}</b>",
+            ParagraphStyle("Tot1", parent=normal, fontName=font),
+        )
+    )
+    story.append(
+        Paragraph(
+            f"PVN: <b>{document.vat_total:.2f} {document.currency}</b>",
+            ParagraphStyle("Tot2", parent=normal, fontName=font),
+        )
+    )
+    story.append(
+        Paragraph(
+            f"Kopā: <b>{document.total:.2f} {document.currency}</b>",
+            ParagraphStyle("Tot3", parent=title_style, alignment=0, fontSize=13),
+        )
+    )
     if document.notes:
         story.append(Spacer(1, 6))
-        story.append(Paragraph(f"Piezīmes: {document.notes}", small))
+        story.append(Paragraph(f"Piezīmes: {nfc(document.notes)}", small))
     if not is_invoice:
         story.append(Spacer(1, 20))
         story.append(
             Paragraph(
-                "Izsniedza: ________________ &nbsp;&nbsp;&nbsp; Saņēma: ________________",
+                nfc("Izsniedza: ________________ &nbsp;&nbsp;&nbsp; Saņēma: ________________"),
                 normal,
             )
         )

@@ -25,7 +25,7 @@
     <a class="btn btn-seller {% if selected_seller and selected_seller.id == s.id %}is-selected{% endif %}"
        href="/documents/new?doc_type={{ doc_type }}&seller_id={{ s.id }}">
       <strong>{{ s.name }}</strong>
-      <span>{{ s.reg_nr }}{% if s.vat_nr %} · {{ s.vat_nr }}{% endif %}</span>
+      <span>{{ s.reg_nr }} · {{ vat_label(s.vat_nr) }}</span>
     </a>
     {% endfor %}
   </div>
@@ -40,9 +40,10 @@
     <div class="panel" style="padding:1rem;background:var(--bg)">
       <strong>{{ selected_seller.name }}</strong>
       <div class="muted">
-        Reģ. Nr. {{ selected_seller.reg_nr }} · PVN {{ selected_seller.vat_nr }}<br>
+        Reģ. Nr. {{ selected_seller.reg_nr }} · PVN {{ vat_label(selected_seller.vat_nr) }}<br>
         {{ selected_seller.address }}<br>
         {{ selected_seller.bank }} · {{ selected_seller.iban }}
+        {% if selected_seller.phone %}<br>{{ selected_seller.phone }}{% endif %}
       </div>
     </div>
 

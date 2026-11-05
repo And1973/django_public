@@ -1,33 +1,37 @@
 {% extends "pdf/base_doc.html" %}
 {% block content %}
-<h1>PAVADZĪME</h1>
-<div class="meta">
-  Nr. <strong>{{ doc.number }}</strong>
-  &nbsp;·&nbsp; Datums: {{ doc.doc_date }}
-</div>
-
-<table class="parties">
+<table class="doc-header">
   <tr>
-    <td>
+    <td class="seller">
       <div class="label">Izsniedzējs</div>
       <strong>{{ doc.seller_name }}</strong><br>
       {% if doc.seller_reg_nr %}Reģ. Nr.: {{ doc.seller_reg_nr }}<br>{% endif %}
-      {% if doc.seller_vat_nr %}PVN Nr.: {{ doc.seller_vat_nr }}<br>{% endif %}
+      PVN Nr.: {{ vat_label(doc.seller_vat_nr) }}<br>
       {% if doc.seller_address %}{{ doc.seller_address }}<br>{% endif %}
+      {% if doc.seller_bank %}Banka: {{ doc.seller_bank }}<br>{% endif %}
+      {% if doc.seller_iban %}IBAN: {{ doc.seller_iban }}<br>{% endif %}
       {% if doc.seller_phone %}{{ doc.seller_phone }}{% endif %}
       {% if doc.seller_email %} · {{ doc.seller_email }}{% endif %}
     </td>
-    <td>
-      <div class="label">Saņēmējs</div>
-      <strong>{{ doc.buyer_name }}</strong><br>
-      {% if doc.buyer_reg_nr %}Reģ. Nr.: {{ doc.buyer_reg_nr }}<br>{% endif %}
-      {% if doc.buyer_vat_nr %}PVN Nr.: {{ doc.buyer_vat_nr }}{% if doc.buyer_vat_checked %} (pārbaudīts){% endif %}<br>{% endif %}
-      {% if doc.buyer_address %}{{ doc.buyer_address }}<br>{% endif %}
-      {% if doc.buyer_phone %}{{ doc.buyer_phone }}{% endif %}
-      {% if doc.buyer_email %} · {{ doc.buyer_email }}{% endif %}
+    <td class="title-block">
+      <h1>PAVADZĪME</h1>
+      <p class="meta">
+        Nr. <strong>{{ doc.number }}</strong><br>
+        Datums: {{ doc.doc_date }}
+      </p>
     </td>
   </tr>
 </table>
+
+<div class="buyer-box">
+  <div class="label">Saņēmējs</div>
+  <strong>{{ doc.buyer_name }}</strong><br>
+  {% if doc.buyer_reg_nr %}Reģ. Nr.: {{ doc.buyer_reg_nr }}<br>{% endif %}
+  PVN Nr.: {{ vat_label(doc.buyer_vat_nr) }}{% if doc.buyer_vat_nr and doc.buyer_vat_checked %} (pārbaudīts){% endif %}<br>
+  {% if doc.buyer_address %}{{ doc.buyer_address }}<br>{% endif %}
+  {% if doc.buyer_phone %}{{ doc.buyer_phone }}{% endif %}
+  {% if doc.buyer_email %} · {{ doc.buyer_email }}{% endif %}
+</div>
 
 <table class="lines">
   <thead>

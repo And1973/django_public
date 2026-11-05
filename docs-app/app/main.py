@@ -23,10 +23,14 @@ from app.services.calc import calc_document
 from app.services.numbering import next_document_number
 from app.services.pdf import generate_pdf, weasyprint_available
 from app.services.seed import seed_sellers
+from app.textutil import nfc, vat_label
 
 app = FastAPI(title="Rēķini un pavadzīmes")
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "app" / "static")), name="static")
 templates = Jinja2Templates(directory=str(BASE_DIR / "app" / "templates"))
+templates.env.globals["vat_label"] = vat_label
+templates.env.filters["nfc"] = nfc
+
 
 def render(request: Request, name: str, context: dict | None = None, status_code: int = 200):
     ctx = dict(context or {})
@@ -64,8 +68,8 @@ def _form_lines(form: Any) -> list[dict]:
     for i, desc in enumerate(descriptions):
         lines.append(
             {
-                "description": desc,
-                "unit": units[i] if i < len(units) else "gab.",
+                "description": nfc(desc).strip(),
+                "unit": nfc(units[i] if i < len(units) else "gab.").strip() or "gab.",
                 "quantity": quantities[i] if i < len(quantities) else 1,
                 "unit_price": prices[i] if i < len(prices) else 0,
                 "vat_rate": vats[i] if i < len(vats) else VAT_RATE_DEFAULT,
@@ -86,9 +90,14 @@ def _upsert_buyer(
     email: str,
     save_buyer: bool,
 ) -> Buyer | None:
-    name = (name or "").strip()
+    name = nfc(name).strip()
     if not name:
         return None
+    reg_nr = nfc(reg_nr).strip()
+    vat_nr = nfc(vat_nr).strip()
+    address = nfc(address).strip()
+    phone = nfc(phone).strip()
+    email = nfc(email).strip()
     buyer: Buyer | None = None
     if buyer_id:
         try:
@@ -100,21 +109,21 @@ def _upsert_buyer(
         db.add(buyer)
     if buyer is not None:
         buyer.name = name
-        buyer.reg_nr = (reg_nr or "").strip()
-        buyer.vat_nr = (vat_nr or "").strip()
-        buyer.address = (address or "").strip()
-        buyer.phone = (phone or "").strip()
-        buyer.email = (email or "").strip()
+        buyer.reg_nr = reg_nr
+        buyer.vat_nr = vat_nr
+        buyer.address = address
+        buyer.phone = phone
+        buyer.email = email
         db.flush()
         return buyer
     # ephemeral buyer object (not persisted)
     return Buyer(
         name=name,
-        reg_nr=(reg_nr or "").strip(),
-        vat_nr=(vat_nr or "").strip(),
-        address=(address or "").strip(),
-        phone=(phone or "").strip(),
-        email=(email or "").strip(),
+        reg_nr=reg_nr,
+        vat_nr=vat_nr,
+        address=address,
+        phone=phone,
+        email=email,
     )
 
 
@@ -339,7 +348,7 @@ async def document_create(request: Request, db: Session = Depends(get_db)):
 
     doc_date = _parse_date(form.get("doc_date")) or date.today()
     due_date = _parse_date(form.get("due_date")) if doc_type == "invoice" else None
-    buyer_name = (form.get("buyer_name") or "").strip()
+    buyer_name = nfc(form.get("buyer_name") or "").strip()
     if not buyer_name:
         return render_error("Norādiet pircēja nosaukumu.", seller)
 
@@ -369,23 +378,23 @@ async def document_create(request: Request, db: Session = Depends(get_db)):
         due_date=due_date,
         seller_id=seller.id,
         buyer_id=buyer.id if buyer and getattr(buyer, "id", None) else None,
-        seller_name=seller.name,
-        seller_reg_nr=seller.reg_nr,
-        seller_vat_nr=seller.vat_nr,
-        seller_address=seller.address,
-        seller_bank=seller.bank,
-        seller_iban=seller.iban,
-        seller_phone=seller.phone,
-        seller_email=seller.email,
+        seller_name=nfc(seller.name),
+        seller_reg_nr=nfc(seller.reg_nr),
+        seller_vat_nr=nfc(seller.vat_nr),
+        seller_address=nfc(seller.address),
+        seller_bank=nfc(seller.bank),
+        seller_iban=nfc(seller.iban),
+        seller_phone=nfc(seller.phone),
+        seller_email=nfc(seller.email),
         buyer_name=buyer_name,
-        buyer_reg_nr=(form.get("buyer_reg_nr") or "").strip(),
-        buyer_vat_nr=(form.get("buyer_vat_nr") or "").strip(),
-        buyer_address=(form.get("buyer_address") or "").strip(),
-        buyer_phone=(form.get("buyer_phone") or "").strip(),
-        buyer_email=(form.get("buyer_email") or "").strip(),
+        buyer_reg_nr=nfc(form.get("buyer_reg_nr") or "").strip(),
+        buyer_vat_nr=nfc(form.get("buyer_vat_nr") or "").strip(),
+        buyer_address=nfc(form.get("buyer_address") or "").strip(),
+        buyer_phone=nfc(form.get("buyer_phone") or "").strip(),
+        buyer_email=nfc(form.get("buyer_email") or "").strip(),
         buyer_vat_checked=form.get("buyer_vat_checked") == "on",
         currency="EUR",
-        notes=(form.get("notes") or "").strip(),
+        notes=nfc(form.get("notes") or "").strip(),
         subtotal=totals.subtotal,
         vat_total=totals.vat_total,
         total=totals.total,
@@ -394,8 +403,8 @@ async def document_create(request: Request, db: Session = Depends(get_db)):
         document.lines.append(
             DocumentLine(
                 position=i + 1,
-                description=line.description,
-                unit=line.unit,
+                description=nfc(line.description),
+                unit=nfc(line.unit),
                 quantity=line.quantity,
                 unit_price=line.unit_price,
                 vat_rate=line.vat_rate,
