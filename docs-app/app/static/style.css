@@ -259,14 +259,21 @@ th {
   justify-content: end;
   gap: 0.35rem;
   margin-top: 1rem;
-  min-width: 220px;
+  min-width: 260px;
   margin-left: auto;
 }
 
 .totals div {
-  display: flex;
-  justify-content: space-between;
-  gap: 2rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  column-gap: 1.5rem;
+}
+
+.totals div span:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .totals .grand {

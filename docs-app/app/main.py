@@ -392,7 +392,7 @@ async def document_create(request: Request, db: Session = Depends(get_db)):
         buyer_address=nfc(form.get("buyer_address") or "").strip(),
         buyer_phone=nfc(form.get("buyer_phone") or "").strip(),
         buyer_email=nfc(form.get("buyer_email") or "").strip(),
-        buyer_vat_checked=form.get("buyer_vat_checked") == "on",
+        buyer_vat_checked=False,
         currency="EUR",
         notes=nfc(form.get("notes") or "").strip(),
         subtotal=totals.subtotal,

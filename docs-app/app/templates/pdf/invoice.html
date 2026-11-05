@@ -28,7 +28,7 @@
   <div class="label">Pircējs</div>
   <strong>{{ doc.buyer_name }}</strong><br>
   {% if doc.buyer_reg_nr %}Reģ. Nr.: {{ doc.buyer_reg_nr }}<br>{% endif %}
-  PVN Nr.: {{ vat_label(doc.buyer_vat_nr) }}{% if doc.buyer_vat_nr and doc.buyer_vat_checked %} (pārbaudīts){% endif %}<br>
+  PVN Nr.: {{ vat_label(doc.buyer_vat_nr) }}<br>
   {% if doc.buyer_address %}{{ doc.buyer_address }}<br>{% endif %}
   {% if doc.buyer_phone %}{{ doc.buyer_phone }}{% endif %}
   {% if doc.buyer_email %} · {{ doc.buyer_email }}{% endif %}
@@ -62,10 +62,24 @@
 </table>
 
 <table class="totals">
-  <tr><td>Bez PVN</td><td class="num">{{ '%.2f'|format(doc.subtotal) }} {{ doc.currency }}</td></tr>
-  <tr><td>PVN</td><td class="num">{{ '%.2f'|format(doc.vat_total) }} {{ doc.currency }}</td></tr>
-  <tr class="grand"><td>Kopā</td><td class="num">{{ '%.2f'|format(doc.total) }} {{ doc.currency }}</td></tr>
+  <tr>
+    <td class="label-cell">Summa bez PVN</td>
+    <td class="num">{{ '%.2f'|format(doc.subtotal) }} {{ doc.currency }}</td>
+  </tr>
+  <tr>
+    <td class="label-cell">PVN</td>
+    <td class="num">{{ '%.2f'|format(doc.vat_total) }} {{ doc.currency }}</td>
+  </tr>
+  <tr class="grand">
+    <td class="label-cell">Kopā</td>
+    <td class="num">{{ '%.2f'|format(doc.total) }} {{ doc.currency }}</td>
+  </tr>
 </table>
+
+<div class="footer-block">
+  <p class="amount-words"><strong>Summa vārdiem:</strong> {{ amount_words(doc.total) }}</p>
+  <p class="legal-line">Dokuments sagatavots elektroniski un derīgs bez paraksta.</p>
+</div>
 
 {% if doc.notes %}<div class="notes"><strong>Piezīmes:</strong> {{ doc.notes }}</div>{% endif %}
 {% endblock %}

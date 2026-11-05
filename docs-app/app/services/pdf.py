@@ -7,6 +7,7 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.config import BASE_DIR
+from app.services.amount_words import amount_in_words_eur
 from app.textutil import nfc, vat_label
 
 logger = logging.getLogger(__name__)
@@ -16,13 +17,16 @@ TEMPLATES_DIR = APP_DIR / "templates"
 FONTS_DIR = APP_DIR / "static" / "fonts"
 FONT_REGULAR = FONTS_DIR / "DejaVuSans.ttf"
 FONT_BOLD = FONTS_DIR / "DejaVuSans-Bold.ttf"
+LEGAL_LINE = nfc("Dokuments sagatavots elektroniski un derīgs bez paraksta.")
 
 _env = Environment(
     loader=FileSystemLoader(str(TEMPLATES_DIR)),
     autoescape=select_autoescape(["html", "xml"]),
 )
 _env.globals["vat_label"] = vat_label
+_env.globals["amount_words"] = amount_in_words_eur
 _env.filters["nfc"] = nfc
+_env.filters["amount_words"] = amount_in_words_eur
 
 _WEASY_OK: bool | None = None
 _REPORTLAB_FONTS_READY = False
@@ -92,7 +96,12 @@ def render_document_html(document: Any) -> str:
         else "pdf/delivery_note.html"
     )
     template = _env.get_template(template_name)
-    return template.render(doc=document, engine="weasyprint", vat_label=vat_label)
+    return template.render(
+        doc=document,
+        engine="weasyprint",
+        vat_label=vat_label,
+        amount_words=amount_in_words_eur,
+    )
 
 
 def html_to_pdf_weasy(html: str) -> bytes:
@@ -198,35 +207,17 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
     buyer_bits = [
         f"<b>{nfc(document.buyer_name)}</b>",
         f"Reģ. Nr.: {nfc(document.buyer_reg_nr)}" if document.buyer_reg_nr else "",
-        f"PVN Nr.: {vat_label(document.buyer_vat_nr)}"
-        + (" (pārbaudīts)" if document.buyer_vat_nr and document.buyer_vat_checked else ""),
+        f"PVN Nr.: {vat_label(document.buyer_vat_nr)}",
         nfc(document.buyer_address),
         nfc(document.buyer_phone),
         nfc(document.buyer_email),
     ]
-    buyer_table = Table(
-        [
-            [
-                Paragraph(nfc("Pircējs") if is_invoice else nfc("Saņēmējs"), label),
-            ],
-            [Paragraph("<br/>".join(filter(None, buyer_bits)), small)],
-        ],
-        colWidths=[170 * mm],
-    )
-    buyer_table.setStyle(
-        TableStyle(
-            [
-                ("BOX", (0, 0), (-1, -1), 0.4, colors.grey),
-                ("BACKGROUND", (0, 0), (-1, -1), colors.Color(0.98, 0.97, 0.94)),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ]
-        )
-    )
+    buyer_flow = [
+        Paragraph(nfc("Pircējs") if is_invoice else nfc("Saņēmējs"), label),
+        Paragraph("<br/>".join(filter(None, buyer_bits)), small),
+    ]
 
-    story: list[Any] = [header, Spacer(1, 10), buyer_table, Spacer(1, 10)]
+    story: list[Any] = [header, Spacer(1, 10), *buyer_flow, Spacer(1, 10)]
 
     table_header = ["Nr.", nfc("Nosaukums"), nfc("Mērv."), nfc("Daudz."), "Cena", "PVN %", "Summa"]
     data: list[list[Any]] = [table_header]
@@ -263,24 +254,40 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
     )
     story.append(lines_table)
     story.append(Spacer(1, 8))
-    story.append(
-        Paragraph(
-            f"Bez PVN: <b>{document.subtotal:.2f} {document.currency}</b>",
-            ParagraphStyle("Tot1", parent=normal, fontName=font),
+
+    currency = nfc(document.currency or "EUR")
+    totals_data = [
+        [nfc("Summa bez PVN"), f"{document.subtotal:.2f} {currency}"],
+        ["PVN", f"{document.vat_total:.2f} {currency}"],
+        [nfc("Kopā"), f"{document.total:.2f} {currency}"],
+    ]
+    totals_table = Table(totals_data, colWidths=[45 * mm, 35 * mm], hAlign="RIGHT")
+    totals_table.setStyle(
+        TableStyle(
+            [
+                ("FONTNAME", (0, 0), (-1, 1), font),
+                ("FONTNAME", (0, 2), (-1, 2), font_bold),
+                ("FONTSIZE", (0, 0), (-1, 1), 9),
+                ("FONTSIZE", (0, 2), (-1, 2), 11),
+                ("ALIGN", (0, 0), (0, -1), "LEFT"),
+                ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                ("LINEABOVE", (0, 2), (-1, 2), 0.5, colors.grey),
+                ("TOPPADDING", (0, 2), (-1, 2), 6),
+            ]
         )
     )
+    story.append(totals_table)
+    story.append(Spacer(1, 12))
     story.append(
         Paragraph(
-            f"PVN: <b>{document.vat_total:.2f} {document.currency}</b>",
-            ParagraphStyle("Tot2", parent=normal, fontName=font),
+            f"<b>{nfc('Summa vārdiem:')}</b> {amount_in_words_eur(document.total)}",
+            small,
         )
     )
-    story.append(
-        Paragraph(
-            f"Kopā: <b>{document.total:.2f} {document.currency}</b>",
-            ParagraphStyle("Tot3", parent=title_style, alignment=0, fontSize=13),
-        )
-    )
+    story.append(Paragraph(LEGAL_LINE, small))
     if document.notes:
         story.append(Spacer(1, 6))
         story.append(Paragraph(f"Piezīmes: {nfc(document.notes)}", small))

@@ -58,10 +58,10 @@
       color: #5c6b73;
     }
     .buyer-box {
-      border: 1px solid #cfc5b4;
-      padding: 8px 10px;
-      background: #faf7f1;
       margin-bottom: 16px;
+      padding: 0;
+      background: none;
+      border: none;
     }
     table.lines {
       width: 100%;
@@ -80,9 +80,43 @@
       text-transform: uppercase;
     }
     table.lines td.num { text-align: right; white-space: nowrap; }
-    .totals { width: 240px; margin-left: auto; }
-    .totals td { padding: 3px 0; }
-    .totals .grand td { font-weight: 700; font-size: 13px; border-top: 1px solid #cfc5b4; padding-top: 6px; }
+    .totals {
+      width: 280px;
+      margin-left: auto;
+      border-collapse: collapse;
+    }
+    .totals td {
+      padding: 3px 0;
+      vertical-align: baseline;
+    }
+    .totals td.label-cell {
+      text-align: left;
+      padding-right: 16px;
+      white-space: nowrap;
+    }
+    .totals td.num {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .totals .grand td {
+      font-weight: 700;
+      font-size: 13px;
+      border-top: 1px solid #cfc5b4;
+      padding-top: 6px;
+    }
+    .footer-block {
+      margin-top: 16px;
+      clear: both;
+    }
+    .amount-words {
+      margin: 0 0 8px;
+    }
+    .legal-line {
+      margin: 0;
+      color: #445055;
+      font-size: 10px;
+    }
     .notes { margin-top: 12px; color: #445055; }
     .sign { margin-top: 28px; }
   </style>

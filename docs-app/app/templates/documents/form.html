@@ -95,10 +95,6 @@
         <input name="buyer_email" id="buyer_email" type="email" value="{{ form.get('buyer_email', '') if form else '' }}">
       </label>
       <label class="checkbox full">
-        <input type="checkbox" name="buyer_vat_checked" {% if form and form.get('buyer_vat_checked') == 'on' %}checked{% endif %}>
-        PVN numurs pārbaudīts manuāli (VIES nav pieslēgts)
-      </label>
-      <label class="checkbox full">
         <input type="checkbox" name="save_buyer" checked>
         Saglabāt pircēju atkārtotai izmantošanai
       </label>
@@ -150,9 +146,9 @@
     <button type="button" class="btn btn-secondary" id="add-line">+ Pievienot rindu</button>
 
     <div class="totals">
-      <div><span class="muted">Bez PVN</span><span id="total-sub">0.00</span></div>
-      <div><span class="muted">PVN</span><span id="total-vat">0.00</span></div>
-      <div class="grand"><span>Kopā EUR</span><span id="total-all">0.00</span></div>
+      <div><span class="muted">Summa bez PVN</span><span><span id="total-sub">0.00</span> EUR</span></div>
+      <div><span class="muted">PVN</span><span><span id="total-vat">0.00</span> EUR</span></div>
+      <div class="grand"><span>Kopā</span><span><span id="total-all">0.00</span> EUR</span></div>
     </div>
 
     <label class="full">
