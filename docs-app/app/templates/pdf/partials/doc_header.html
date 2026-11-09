@@ -1,0 +1,33 @@
+{# Shared document header: seller (logo+rekvizīti) left, title right. #}
+<table class="doc-header">
+  <tr>
+    <td class="seller">
+      <div class="label">{{ party_label }}</div>
+      <div class="seller-brand{% if doc.seller_logo_filename %} has-logo{% endif %}">
+        {% if doc.seller_logo_filename %}
+        <div class="seller-logo-wrap">
+          <img class="seller-logo" src="static/logos/{{ doc.seller_logo_filename }}" alt="">
+        </div>
+        {% endif %}
+        <div class="seller-meta">
+          <div class="seller-name">{{ doc.seller_name }}</div>
+          {% if doc.seller_reg_nr %}<div>Reģ. Nr.: {{ doc.seller_reg_nr }}</div>{% endif %}
+          <div>PVN Nr.: {{ vat_label(doc.seller_vat_nr) }}</div>
+          {% if doc.seller_address %}<div>{{ doc.seller_address }}</div>{% endif %}
+          {% if doc.seller_bank %}<div>Banka: {{ doc.seller_bank }}</div>{% endif %}
+          {% if doc.seller_iban %}<div>IBAN: {{ doc.seller_iban }}</div>{% endif %}
+          {% if doc.seller_phone %}<div>{{ doc.seller_phone }}</div>{% endif %}
+          {% if doc.seller_email %}<div>{{ doc.seller_email }}</div>{% endif %}
+        </div>
+      </div>
+    </td>
+    <td class="title-block">
+      <h1>{{ doc_title }}</h1>
+      <p class="meta">
+        Nr. <strong>{{ doc.number }}</strong><br>
+        Datums: {{ doc.doc_date }}
+        {% if show_due and doc.due_date %}<br>Apmaksas termiņš: {{ doc.due_date }}{% endif %}
+      </p>
+    </td>
+  </tr>
+</table>

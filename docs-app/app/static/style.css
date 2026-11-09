@@ -140,29 +140,47 @@ h2 { font-size: 1.25rem; }
   text-align: left;
   flex-direction: column;
   align-items: flex-start;
-  min-height: 5.5rem;
-  padding: 0.9rem 1rem;
+  justify-content: flex-start;
+  gap: 0.25rem;
+  min-height: 5.25rem;
+  padding: 0.85rem 1rem;
 }
 
 .btn-seller strong { font-size: 1rem; }
-.btn-seller span { color: var(--muted); font-weight: 500; font-size: 0.9rem; }
+.btn-seller > span { color: var(--muted); font-weight: 500; font-size: 0.9rem; }
+.seller-logo-slot {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  margin-bottom: 0.15rem;
+}
 .seller-logo-thumb {
   display: block;
-  max-height: 36px;
-  max-width: 120px;
+  height: 36px;
   width: auto;
-  height: auto;
-  margin-bottom: 0.35rem;
+  max-width: 120px;
   object-fit: contain;
+  object-position: left center;
+}
+.seller-selected {
+  display: block;
+}
+.seller-selected.has-logo {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.85rem;
+  align-items: start;
+}
+.seller-selected .seller-logo-wrap {
+  line-height: 0;
 }
 .seller-logo-header {
   display: block;
-  max-height: 40px;
-  max-width: 140px;
+  height: 40px;
   width: auto;
-  height: auto;
-  margin-bottom: 0.45rem;
+  max-width: 130px;
   object-fit: contain;
+  object-position: left top;
 }
 .btn-seller.is-selected,
 .btn-seller:hover {

@@ -1,31 +1,8 @@
 {% extends "pdf/base_doc.html" %}
 {% block content %}
-<table class="doc-header">
-  <tr>
-    <td class="seller">
-      <div class="label">Pārdevējs</div>
-      {% if doc.seller_logo_filename %}
-      <img class="seller-logo" src="static/logos/{{ doc.seller_logo_filename }}" alt="">
-      {% endif %}
-      <strong>{{ doc.seller_name }}</strong><br>
-      {% if doc.seller_reg_nr %}Reģ. Nr.: {{ doc.seller_reg_nr }}<br>{% endif %}
-      PVN Nr.: {{ vat_label(doc.seller_vat_nr) }}<br>
-      {% if doc.seller_address %}{{ doc.seller_address }}<br>{% endif %}
-      {% if doc.seller_bank %}Banka: {{ doc.seller_bank }}<br>{% endif %}
-      {% if doc.seller_iban %}IBAN: {{ doc.seller_iban }}<br>{% endif %}
-      {% if doc.seller_phone %}{{ doc.seller_phone }}{% endif %}
-      {% if doc.seller_email %} · {{ doc.seller_email }}{% endif %}
-    </td>
-    <td class="title-block">
-      <h1>RĒĶINS</h1>
-      <p class="meta">
-        Nr. <strong>{{ doc.number }}</strong><br>
-        Datums: {{ doc.doc_date }}
-        {% if doc.due_date %}<br>Apmaksas termiņš: {{ doc.due_date }}{% endif %}
-      </p>
-    </td>
-  </tr>
-</table>
+{% with party_label="Pārdevējs", doc_title="RĒĶINS", show_due=True %}
+{% include "pdf/partials/doc_header.html" %}
+{% endwith %}
 
 <div class="buyer-box">
   <div class="label">Pircējs</div>

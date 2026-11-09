@@ -183,39 +183,62 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
     if is_invoice and document.due_date:
         title_bits.append(f"Apmaksas termiņš: {document.due_date}")
 
-    seller_flow: list[Any] = [
-        Paragraph(nfc("Pārdevējs") if is_invoice else nfc("Izsniedzējs"), label),
-    ]
+    seller_meta = Paragraph("<br/>".join(filter(None, seller_bits)), small)
     logo_name = nfc(getattr(document, "seller_logo_filename", "") or "").strip()
+    logo_img = None
     if logo_name:
         logo_path = FONTS_DIR.parent / "logos" / logo_name
         if logo_path.is_file():
             logo_img = Image(str(logo_path))
-            # ~40px / 14mm tall, capped width so logo stays secondary to rekvizīti
-            max_w, max_h = 40 * mm, 14 * mm
+            max_w, max_h = 36 * mm, 14 * mm  # ~40px height
             iw, ih = float(logo_img.imageWidth), float(logo_img.imageHeight)
             scale = min(max_w / iw, max_h / ih)
             logo_img.drawWidth = iw * scale
             logo_img.drawHeight = ih * scale
-            seller_flow.append(logo_img)
-            seller_flow.append(Spacer(1, 3))
-    seller_flow.append(Paragraph("<br/>".join(filter(None, seller_bits)), small))
 
+    # Logo beside rekvizīti when present; otherwise text-only (no empty gap).
+    if logo_img is not None:
+        brand = Table(
+            [[logo_img, seller_meta]],
+            colWidths=[logo_img.drawWidth + 2 * mm, 98 * mm - (logo_img.drawWidth + 2 * mm)],
+        )
+        brand.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                    ("RIGHTPADDING", (0, 0), (0, 0), 8),
+                    ("RIGHTPADDING", (1, 0), (1, 0), 0),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ]
+            )
+        )
+    else:
+        brand = seller_meta
+
+    seller_block = [
+        Paragraph(nfc("Pārdevējs") if is_invoice else nfc("Izsniedzējs"), label),
+        brand,
+    ]
     header = Table(
         [
             [
-                seller_flow,
+                seller_block,
                 [Paragraph("<br/>".join(title_bits), normal_right)],
             ]
         ],
-        colWidths=[100 * mm, 70 * mm],
+        colWidths=[105 * mm, 65 * mm],
     )
     header.setStyle(
         TableStyle(
             [
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (0, 0), 10),
+                ("RIGHTPADDING", (1, 0), (1, 0), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
             ]
         )
     )

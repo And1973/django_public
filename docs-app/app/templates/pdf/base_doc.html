@@ -31,40 +31,70 @@
     .doc-header {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
     .doc-header td {
       vertical-align: top;
       padding: 0;
     }
     .doc-header .seller {
-      width: 58%;
-      padding-right: 12px;
-    }
-    .seller-logo {
-      display: block;
-      max-height: 40px;   /* ~14mm print */
-      max-width: 140px;
-      width: auto;
-      height: auto;
-      object-fit: contain;
-      margin: 0 0 6px;
+      width: 62%;
+      padding-right: 14px;
     }
     .doc-header .title-block {
-      width: 42%;
+      width: 38%;
       text-align: right;
+      padding-left: 8px;
     }
     .doc-header .meta {
       color: #445055;
       margin: 0;
+      line-height: 1.4;
     }
     .label {
       font-weight: 700;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       text-transform: uppercase;
       font-size: 10px;
       letter-spacing: 0.04em;
       color: #5c6b73;
+    }
+    .seller-brand {
+      display: block;
+    }
+    .seller-brand.has-logo {
+      display: table;
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .seller-brand.has-logo .seller-logo-wrap,
+    .seller-brand.has-logo .seller-meta {
+      display: table-cell;
+      vertical-align: top;
+    }
+    .seller-logo-wrap {
+      width: 1%;
+      white-space: nowrap;
+      padding-right: 10px;
+    }
+    .seller-logo {
+      display: block;
+      height: 40px;          /* fixed print height ~14mm */
+      width: auto;
+      max-width: 130px;
+      object-fit: contain;
+      object-position: left top;
+    }
+    .seller-name {
+      font-weight: 700;
+      font-size: 12px;
+      margin: 0 0 2px;
+    }
+    .seller-meta {
+      line-height: 1.35;
+    }
+    .seller-meta div {
+      margin: 0;
     }
     .buyer-box {
       margin-bottom: 16px;
