@@ -196,31 +196,15 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
             logo_img.drawWidth = iw * scale
             logo_img.drawHeight = ih * scale
 
-    # Logo beside rekvizīti when present; otherwise text-only (no empty gap).
+    # Order: logo (if any) → PĀRDEVĒJS label → seller details. No empty gap for Madeks.
+    seller_block: list[Any] = []
     if logo_img is not None:
-        brand = Table(
-            [[logo_img, seller_meta]],
-            colWidths=[logo_img.drawWidth + 2 * mm, 98 * mm - (logo_img.drawWidth + 2 * mm)],
-        )
-        brand.setStyle(
-            TableStyle(
-                [
-                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                    ("RIGHTPADDING", (0, 0), (0, 0), 8),
-                    ("RIGHTPADDING", (1, 0), (1, 0), 0),
-                    ("TOPPADDING", (0, 0), (-1, -1), 0),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-                ]
-            )
-        )
-    else:
-        brand = seller_meta
-
-    seller_block = [
-        Paragraph(nfc("Pārdevējs") if is_invoice else nfc("Izsniedzējs"), label),
-        brand,
-    ]
+        seller_block.append(logo_img)
+        seller_block.append(Spacer(1, 6))
+    seller_block.append(
+        Paragraph(nfc("Pārdevējs") if is_invoice else nfc("Izsniedzējs"), label)
+    )
+    seller_block.append(seller_meta)
     header = Table(
         [
             [
