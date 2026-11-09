@@ -149,7 +149,7 @@ h2 { font-size: 1.25rem; }
 .seller-logo-thumb {
   display: block;
   max-height: 36px;
-  max-width: 140px;
+  max-width: 120px;
   width: auto;
   height: auto;
   margin-bottom: 0.35rem;
@@ -157,11 +157,11 @@ h2 { font-size: 1.25rem; }
 }
 .seller-logo-header {
   display: block;
-  max-height: 52px;
-  max-width: 200px;
+  max-height: 40px;
+  max-width: 140px;
   width: auto;
   height: auto;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.45rem;
   object-fit: contain;
 }
 .btn-seller.is-selected,

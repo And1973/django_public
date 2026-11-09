@@ -191,14 +191,14 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
         logo_path = FONTS_DIR.parent / "logos" / logo_name
         if logo_path.is_file():
             logo_img = Image(str(logo_path))
-            # max ~42mm wide, keep aspect
-            max_w, max_h = 42 * mm, 16 * mm
-            iw, ih = logo_img.imageWidth, logo_img.imageHeight
+            # ~40px / 14mm tall, capped width so logo stays secondary to rekvizīti
+            max_w, max_h = 40 * mm, 14 * mm
+            iw, ih = float(logo_img.imageWidth), float(logo_img.imageHeight)
             scale = min(max_w / iw, max_h / ih)
             logo_img.drawWidth = iw * scale
             logo_img.drawHeight = ih * scale
             seller_flow.append(logo_img)
-            seller_flow.append(Spacer(1, 4))
+            seller_flow.append(Spacer(1, 3))
     seller_flow.append(Paragraph("<br/>".join(filter(None, seller_bits)), small))
 
     header = Table(
