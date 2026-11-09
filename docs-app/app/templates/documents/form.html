@@ -24,6 +24,9 @@
     {% for s in sellers %}
     <a class="btn btn-seller {% if selected_seller and selected_seller.id == s.id %}is-selected{% endif %}"
        href="/documents/new?doc_type={{ doc_type }}&seller_id={{ s.id }}">
+      {% if s.logo_filename %}
+      <img class="seller-logo-thumb" src="/static/logos/{{ s.logo_filename }}" alt="">
+      {% endif %}
       <strong>{{ s.name }}</strong>
       <span>{{ s.reg_nr }} · {{ vat_label(s.vat_nr) }}</span>
     </a>
@@ -38,6 +41,9 @@
     <input type="hidden" name="seller_id" value="{{ selected_seller.id }}">
 
     <div class="panel" style="padding:1rem;background:var(--bg)">
+      {% if selected_seller.logo_filename %}
+      <img class="seller-logo-header" src="/static/logos/{{ selected_seller.logo_filename }}" alt="">
+      {% endif %}
       <strong>{{ selected_seller.name }}</strong>
       <div class="muted">
         Reģ. Nr. {{ selected_seller.reg_nr }} · PVN {{ vat_label(selected_seller.vat_nr) }}<br>

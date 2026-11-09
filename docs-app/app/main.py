@@ -386,6 +386,7 @@ async def document_create(request: Request, db: Session = Depends(get_db)):
         seller_iban=nfc(seller.iban),
         seller_phone=nfc(seller.phone),
         seller_email=nfc(seller.email),
+        seller_logo_filename=nfc(getattr(seller, "logo_filename", "") or ""),
         buyer_name=buyer_name,
         buyer_reg_nr=nfc(form.get("buyer_reg_nr") or "").strip(),
         buyer_vat_nr=nfc(form.get("buyer_vat_nr") or "").strip(),

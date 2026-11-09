@@ -70,6 +70,7 @@ def _nfc_doc_fields(document: Any) -> None:
         "seller_iban",
         "seller_phone",
         "seller_email",
+        "seller_logo_filename",
         "buyer_name",
         "buyer_reg_nr",
         "buyer_vat_nr",
@@ -116,7 +117,7 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
     from reportlab.lib.units import mm
-    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
     _nfc_doc_fields(document)
     font = _ensure_reportlab_fonts()
@@ -182,13 +183,28 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
     if is_invoice and document.due_date:
         title_bits.append(f"Apmaksas termiņš: {document.due_date}")
 
+    seller_flow: list[Any] = [
+        Paragraph(nfc("Pārdevējs") if is_invoice else nfc("Izsniedzējs"), label),
+    ]
+    logo_name = nfc(getattr(document, "seller_logo_filename", "") or "").strip()
+    if logo_name:
+        logo_path = FONTS_DIR.parent / "logos" / logo_name
+        if logo_path.is_file():
+            logo_img = Image(str(logo_path))
+            # max ~42mm wide, keep aspect
+            max_w, max_h = 42 * mm, 16 * mm
+            iw, ih = logo_img.imageWidth, logo_img.imageHeight
+            scale = min(max_w / iw, max_h / ih)
+            logo_img.drawWidth = iw * scale
+            logo_img.drawHeight = ih * scale
+            seller_flow.append(logo_img)
+            seller_flow.append(Spacer(1, 4))
+    seller_flow.append(Paragraph("<br/>".join(filter(None, seller_bits)), small))
+
     header = Table(
         [
             [
-                [
-                    Paragraph(nfc("Pārdevējs") if is_invoice else nfc("Izsniedzējs"), label),
-                    Paragraph("<br/>".join(filter(None, seller_bits)), small),
-                ],
+                seller_flow,
                 [Paragraph("<br/>".join(title_bits), normal_right)],
             ]
         ],

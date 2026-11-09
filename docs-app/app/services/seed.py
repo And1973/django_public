@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
+from app.database import engine
 from app.models import Seller
 from app.textutil import nfc
 
 # Real company rekvizīti (synced on every startup by sort_order).
+# Logos only for Classic Cars + Tenisa Klubs (filenames under static/logos/).
 SELLERS = [
     {
         "name": nfc("Madeks SIA"),
@@ -17,6 +19,7 @@ SELLERS = [
         "iban": "LV04HABA0551053848137",
         "phone": "",
         "email": "",
+        "logo_filename": "",
         "sort_order": 1,
     },
     {
@@ -28,6 +31,7 @@ SELLERS = [
         "iban": "LV45HABA0551060964677",
         "phone": "",
         "email": "",
+        "logo_filename": "zauers-classic-cars.png",
         "sort_order": 2,
     },
     {
@@ -39,13 +43,30 @@ SELLERS = [
         "iban": "LV44HABA0551044044209",
         "phone": "",
         "email": "",
+        "logo_filename": "zauers-tenisa-klubs.png",
         "sort_order": 3,
     },
 ]
 
 
+def ensure_logo_columns() -> None:
+    """SQLite create_all does not add columns — patch existing DBs."""
+    with engine.begin() as conn:
+        for table, column in (
+            ("sellers", "logo_filename"),
+            ("documents", "seller_logo_filename"),
+        ):
+            rows = conn.execute(text(f"PRAGMA table_info({table})")).fetchall()
+            names = {r[1] for r in rows}
+            if column not in names:
+                conn.execute(
+                    text(f"ALTER TABLE {table} ADD COLUMN {column} VARCHAR(255) DEFAULT ''")
+                )
+
+
 def seed_sellers(db: Session) -> None:
     """Insert or update the three canonical sellers; deactivate any extras."""
+    ensure_logo_columns()
     keep_ids: list[int] = []
     for row in SELLERS:
         seller = db.scalar(select(Seller).where(Seller.sort_order == row["sort_order"]))

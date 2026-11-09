@@ -31,6 +31,7 @@ class Seller(Base):
     iban: Mapped[str] = mapped_column(String(64), default="")
     phone: Mapped[str] = mapped_column(String(64), default="")
     email: Mapped[str] = mapped_column(String(255), default="")
+    logo_filename: Mapped[str] = mapped_column(String(255), default="")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
@@ -96,6 +97,7 @@ class Document(Base):
     seller_iban: Mapped[str] = mapped_column(String(64), default="")
     seller_phone: Mapped[str] = mapped_column(String(64), default="")
     seller_email: Mapped[str] = mapped_column(String(255), default="")
+    seller_logo_filename: Mapped[str] = mapped_column(String(255), default="")
 
     buyer_name: Mapped[str] = mapped_column(String(255), default="")
     buyer_reg_nr: Mapped[str] = mapped_column(String(64), default="")

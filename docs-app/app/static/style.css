@@ -146,6 +146,24 @@ h2 { font-size: 1.25rem; }
 
 .btn-seller strong { font-size: 1rem; }
 .btn-seller span { color: var(--muted); font-weight: 500; font-size: 0.9rem; }
+.seller-logo-thumb {
+  display: block;
+  max-height: 36px;
+  max-width: 140px;
+  width: auto;
+  height: auto;
+  margin-bottom: 0.35rem;
+  object-fit: contain;
+}
+.seller-logo-header {
+  display: block;
+  max-height: 52px;
+  max-width: 200px;
+  width: auto;
+  height: auto;
+  margin-bottom: 0.55rem;
+  object-fit: contain;
+}
 .btn-seller.is-selected,
 .btn-seller:hover {
   border-color: var(--accent);

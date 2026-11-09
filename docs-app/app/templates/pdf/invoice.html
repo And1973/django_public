@@ -4,6 +4,9 @@
   <tr>
     <td class="seller">
       <div class="label">Pārdevējs</div>
+      {% if doc.seller_logo_filename %}
+      <img class="seller-logo" src="static/logos/{{ doc.seller_logo_filename }}" alt="">
+      {% endif %}
       <strong>{{ doc.seller_name }}</strong><br>
       {% if doc.seller_reg_nr %}Reģ. Nr.: {{ doc.seller_reg_nr }}<br>{% endif %}
       PVN Nr.: {{ vat_label(doc.seller_vat_nr) }}<br>
