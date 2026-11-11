@@ -318,10 +318,10 @@ th {
 }
 
 .lines-table .col-desc { width: auto; }
-.lines-table .col-unit { width: 3.75rem; }
+.lines-table .col-unit { width: calc(4ch + 0.8rem); }
 .lines-table .col-qty { width: 9%; }
 .lines-table .col-price { width: 13%; }
-.lines-table .col-vat { width: 3rem; }
+.lines-table .col-vat { width: calc(2.25ch + 0.8rem); }
 .lines-table .col-sum { width: 11%; }
 .lines-table .col-actions { width: 3.25rem; }
 
@@ -335,11 +335,12 @@ th {
   text-align: center;
 }
 
-/* Mērv. / PVN %: hug gab./21 with equal padding */
+/* Column width follows input hug-size, not header label length */
 .lines-table th:nth-child(2),
 .lines-table td:nth-child(2) {
-  width: 3.75rem;
-  min-width: 3.75rem;
+  width: calc(4ch + 0.8rem);
+  min-width: calc(4ch + 0.8rem);
+  max-width: calc(4ch + 0.8rem);
   overflow: visible;
   white-space: nowrap;
   text-align: center;
@@ -347,9 +348,10 @@ th {
 
 .lines-table th:nth-child(5),
 .lines-table td:nth-child(5) {
-  width: 3rem;
-  min-width: 3rem;
-  overflow: visible;
+  width: calc(2.25ch + 0.8rem);
+  min-width: calc(2.25ch + 0.8rem);
+  max-width: calc(2.25ch + 0.8rem);
+  overflow: visible; /* «PVN %» may paint outside; column stays input-sized */
   white-space: nowrap;
   text-align: center;
 }
@@ -365,6 +367,13 @@ th {
   min-width: 0;
   box-sizing: border-box;
   padding: 0.5rem 0.55rem;
+}
+
+.lines-table input[type="number"] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .lines-table input[name="line_unit"],
@@ -385,13 +394,6 @@ th {
 .lines-table input[name="line_vat_rate"] {
   width: calc(2.25ch + 0.8rem); /* 21 + equal pad */
   min-width: calc(2.25ch + 0.8rem);
-}
-
-.lines-table input[type="number"] {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  -moz-appearance: textfield;
-  appearance: textfield;
 }
 
 .lines-table input[type="number"]::-webkit-outer-spin-button,
