@@ -476,6 +476,9 @@ async def _save_document_from_form(
     )
     db.commit()
     db.refresh(document)
+    action = (form.get("action") or "save_pdf").strip()
+    if action == "save":
+        return RedirectResponse("/documents", status_code=303)
     return RedirectResponse(f"/documents/{document.id}", status_code=303)
 
 

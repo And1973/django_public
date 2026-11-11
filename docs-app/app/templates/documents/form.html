@@ -192,8 +192,9 @@
     </label>
 
     <div class="actions-row">
-      <button class="btn" type="submit">{% if is_edit %}Saglabāt izmaiņas{% else %}Saglabāt un atvērt PDF{% endif %}</button>
       <a class="btn btn-secondary" href="{% if is_edit %}/documents/{{ document.id }}{% else %}/documents{% endif %}">Atcelt</a>
+      <button class="btn btn-secondary" type="submit" name="action" value="save">Saglabāt</button>
+      <button class="btn" type="submit" name="action" value="save_pdf">Saglabāt un atvērt PDF</button>
     </div>
   </form>
   {% endif %}

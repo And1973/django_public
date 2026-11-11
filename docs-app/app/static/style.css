@@ -449,6 +449,7 @@ th {
   flex-wrap: wrap;
   gap: 0.6rem;
   margin-top: 1.25rem;
+  justify-content: flex-end;
 }
 
 .row-actions {
