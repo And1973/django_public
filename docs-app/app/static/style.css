@@ -317,12 +317,12 @@ th {
   border-collapse: collapse;
 }
 
-.lines-table .col-desc { width: 42%; }
+.lines-table .col-desc { width: 46%; }
 .lines-table .col-unit { width: 7%; }
 .lines-table .col-qty { width: 9%; }
 .lines-table .col-price { width: 14%; }
-.lines-table .col-vat { width: 8%; }
-.lines-table .col-sum { width: 12%; }
+.lines-table .col-vat { width: 5%; }
+.lines-table .col-sum { width: 11%; }
 .lines-table .col-actions { width: 3.25rem; }
 
 .lines-table th,
