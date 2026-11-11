@@ -318,10 +318,10 @@ th {
 }
 
 .lines-table .col-desc { width: auto; }
-.lines-table .col-unit { width: 4.5rem; }
+.lines-table .col-unit { width: 3.75rem; }
 .lines-table .col-qty { width: 9%; }
 .lines-table .col-price { width: 13%; }
-.lines-table .col-vat { width: 3.75rem; }
+.lines-table .col-vat { width: 3rem; }
 .lines-table .col-sum { width: 11%; }
 .lines-table .col-actions { width: 3.25rem; }
 
@@ -335,21 +335,23 @@ th {
   text-align: center;
 }
 
-/* Mērv. / PVN %: tight to gab./21 + pad; headers stay readable */
+/* Mērv. / PVN %: hug gab./21 with equal padding */
 .lines-table th:nth-child(2),
 .lines-table td:nth-child(2) {
-  width: 4.5rem;
-  min-width: 4.5rem;
-  overflow: visible;
-  white-space: nowrap;
-}
-
-.lines-table th:nth-child(5),
-.lines-table td:nth-child(5) {
   width: 3.75rem;
   min-width: 3.75rem;
   overflow: visible;
   white-space: nowrap;
+  text-align: center;
+}
+
+.lines-table th:nth-child(5),
+.lines-table td:nth-child(5) {
+  width: 3rem;
+  min-width: 3rem;
+  overflow: visible;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .lines-table th:nth-child(3),
@@ -367,21 +369,22 @@ th {
 
 .lines-table input[name="line_unit"],
 .lines-table input[name="line_vat_rate"] {
-  width: auto;
-  max-width: none;
-  margin-left: 0.4rem;
-  padding: 0.5rem 0.35rem;
-  text-align: right;
+  display: block;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0.5rem 0.4rem; /* equal L/R */
+  text-align: center;
+  field-sizing: content;
 }
 
 .lines-table input[name="line_unit"] {
-  min-width: 3.1rem; /* gab. + small padding */
-  width: 3.1rem;
+  width: calc(4ch + 0.8rem); /* gab. + equal pad */
+  min-width: calc(4ch + 0.8rem);
 }
 
 .lines-table input[name="line_vat_rate"] {
-  min-width: 2.1rem; /* 21 + small padding */
-  width: 2.1rem;
+  width: calc(2.25ch + 0.8rem); /* 21 + equal pad */
+  min-width: calc(2.25ch + 0.8rem);
 }
 
 .lines-table input[type="number"] {
