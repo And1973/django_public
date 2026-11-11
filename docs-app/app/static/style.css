@@ -367,6 +367,7 @@ th {
 
 .lines-table input[name="line_unit"] {
   min-width: 4.75rem; /* gab. + horizontal padding */
+  text-align: right;
 }
 
 .lines-table input[name="line_vat_rate"] {
