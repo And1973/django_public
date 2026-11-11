@@ -21,11 +21,11 @@
     </label>
     <label>
       No
-      <input type="date" name="date_from" value="{{ filters.date_from }}">
+      <input type="text" name="date_from" value="{{ filters.date_from }}" placeholder="dd-mm-yyyy" inputmode="numeric">
     </label>
     <label>
       Līdz
-      <input type="date" name="date_to" value="{{ filters.date_to }}">
+      <input type="text" name="date_to" value="{{ filters.date_to }}" placeholder="dd-mm-yyyy" inputmode="numeric">
     </label>
     <label>
       Meklēt
@@ -44,6 +44,7 @@
         <th>Pircējs</th>
         <th>Pārdevējs</th>
         <th>Summa</th>
+        <th>Darbības</th>
       </tr>
     </thead>
     <tbody>
@@ -51,10 +52,17 @@
       <tr>
         <td><a href="/documents/{{ d.id }}"><strong>{{ d.number }}</strong></a></td>
         <td>{% if d.doc_type == 'invoice' %}Rēķins{% else %}Pavadzīme{% endif %}</td>
-        <td>{{ d.doc_date }}</td>
+        <td>{{ d.doc_date|format_date }}</td>
         <td>{{ d.buyer_name }}</td>
         <td>{{ d.seller_name }}</td>
         <td>{{ '%.2f'|format(d.total) }} {{ d.currency }}</td>
+        <td class="row-actions">
+          <a class="btn btn-secondary btn-small" href="/documents/{{ d.id }}/edit">Labot</a>
+          <form method="post" action="/documents/{{ d.id }}/delete" class="inline-form"
+                onsubmit="return confirm('Dzēst dokumentu {{ d.number }}? Šo darbību nevar atsaukt.');">
+            <button class="btn btn-danger btn-small" type="submit">Dzēst</button>
+          </form>
+        </td>
       </tr>
       {% endfor %}
     </tbody>

@@ -8,13 +8,18 @@
         <h1>{{ doc.number }}</h1>
         <p class="lead" style="margin:0">
           {% if doc.doc_type == 'invoice' %}Rēķins{% else %}Pavadzīme{% endif %}
-          · {{ doc.doc_date }}
+          · {{ doc.doc_date|format_date }}
           · {{ '%.2f'|format(doc.total) }} {{ doc.currency }}
         </p>
       </div>
       <div class="nav-actions">
         <a class="btn" href="/documents/{{ doc.id }}/pdf?download=1">Lejupielādēt PDF</a>
+        <a class="btn btn-secondary" href="/documents/{{ doc.id }}/edit">Labot</a>
         <a class="btn btn-secondary" href="/documents/new?doc_type={{ doc.doc_type }}">Jauns tāds pats</a>
+        <form method="post" action="/documents/{{ doc.id }}/delete" style="margin:0"
+              onsubmit="return confirm('Dzēst dokumentu {{ doc.number }}?');">
+          <button class="btn btn-danger" type="submit">Dzēst</button>
+        </form>
         <a class="btn btn-ghost" href="/documents">Saraksts</a>
       </div>
     </div>

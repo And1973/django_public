@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.config import BASE_DIR
 from app.services.amount_words import amount_in_words_eur
-from app.textutil import nfc, vat_label
+from app.textutil import format_date, nfc, vat_label
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,9 @@ _env = Environment(
 )
 _env.globals["vat_label"] = vat_label
 _env.globals["amount_words"] = amount_in_words_eur
+_env.globals["format_date"] = format_date
 _env.filters["nfc"] = nfc
+_env.filters["format_date"] = format_date
 _env.filters["amount_words"] = amount_in_words_eur
 
 _WEASY_OK: bool | None = None
@@ -178,10 +180,10 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
     title_bits = [
         f"<font size='16'><b>{title}</b></font>",
         f"Nr. <b>{nfc(document.number)}</b>",
-        f"Datums: {document.doc_date}",
+        f"Datums: {format_date(document.doc_date)}",
     ]
     if is_invoice and document.due_date:
-        title_bits.append(f"Apmaksas termiņš: {document.due_date}")
+        title_bits.append(f"Apmaksas termiņš: {format_date(document.due_date)}")
 
     seller_meta = Paragraph("<br/>".join(filter(None, seller_bits)), small)
     logo_name = nfc(getattr(document, "seller_logo_filename", "") or "").strip()

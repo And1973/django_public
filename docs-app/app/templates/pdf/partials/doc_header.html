@@ -23,8 +23,8 @@
       <h1>{{ doc_title }}</h1>
       <p class="meta">
         Nr. <strong>{{ doc.number }}</strong><br>
-        Datums: {{ doc.doc_date }}
-        {% if show_due and doc.due_date %}<br>Apmaksas termiņš: {{ doc.due_date }}{% endif %}
+        Datums: {{ doc.doc_date|format_date }}
+        {% if show_due and doc.due_date %}<br>Apmaksas termiņš: {{ doc.due_date|format_date }}{% endif %}
       </p>
     </td>
   </tr>

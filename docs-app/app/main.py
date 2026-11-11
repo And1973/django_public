@@ -23,20 +23,21 @@ from app.services.calc import calc_document
 from app.services.numbering import next_document_number
 from app.services.pdf import generate_pdf, weasyprint_available
 from app.services.seed import seed_sellers
-from app.textutil import nfc, vat_label
+from app.textutil import format_date, nfc, parse_date, vat_label
 
 app = FastAPI(title="Rēķini un pavadzīmes")
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "app" / "static")), name="static")
 templates = Jinja2Templates(directory=str(BASE_DIR / "app" / "templates"))
 templates.env.globals["vat_label"] = vat_label
+templates.env.globals["format_date"] = format_date
 templates.env.filters["nfc"] = nfc
+templates.env.filters["format_date"] = format_date
 
 
 def render(request: Request, name: str, context: dict | None = None, status_code: int = 200):
     ctx = dict(context or {})
     ctx.setdefault("request", request)
     return templates.TemplateResponse(request, name, ctx, status_code=status_code)
-
 
 
 @app.on_event("startup")
@@ -50,12 +51,7 @@ def on_startup() -> None:
 
 
 def _parse_date(value: str | None) -> date | None:
-    if not value:
-        return None
-    try:
-        return date.fromisoformat(value)
-    except ValueError:
-        return None
+    return parse_date(value)
 
 
 def _form_lines(form: Any) -> list[dict]:
@@ -211,6 +207,48 @@ def document_list(
     )
 
 
+def _sellers_products(db: Session) -> tuple[list[Seller], list[Product]]:
+    sellers = db.scalars(
+        select(Seller).where(Seller.is_active.is_(True)).order_by(Seller.sort_order)
+    ).all()
+    products = db.scalars(
+        select(Product).where(Product.is_active.is_(True)).order_by(Product.name)
+    ).all()
+    return list(sellers), list(products)
+
+
+def _form_context(
+    *,
+    doc_type: str,
+    sellers: list[Seller],
+    products: list[Product],
+    selected: Seller | None,
+    today: str,
+    due_default: str,
+    error: str | None = None,
+    form: dict | None = None,
+    document: Document | None = None,
+    existing_lines: list | None = None,
+) -> dict:
+    return {
+        "doc_type": doc_type,
+        "sellers": sellers,
+        "selected_seller": selected,
+        "products": products,
+        "today": today,
+        "due_default": due_default,
+        "vat_default": VAT_RATE_DEFAULT,
+        "error": error,
+        "form": form or {},
+        "document": document,
+        "existing_lines": existing_lines or [],
+        "is_edit": document is not None,
+        "form_action": (
+            f"/documents/{document.id}/edit" if document is not None else "/documents/new"
+        ),
+    }
+
+
 @app.get("/documents/new", response_class=HTMLResponse)
 def document_new(
     request: Request,
@@ -223,25 +261,19 @@ def document_new(
         return redirect
     if doc_type not in ("invoice", "delivery_note"):
         doc_type = "invoice"
-    sellers = db.scalars(
-        select(Seller).where(Seller.is_active.is_(True)).order_by(Seller.sort_order)
-    ).all()
-    products = db.scalars(
-        select(Product).where(Product.is_active.is_(True)).order_by(Product.name)
-    ).all()
-    selected = None
-    if seller_id:
-        selected = db.get(Seller, seller_id)
-    return render(request, "documents/form.html", {"doc_type": doc_type,
-            "sellers": sellers,
-            "selected_seller": selected,
-            "products": products,
-            "today": date.today().isoformat(),
-            "due_default": (date.today() + timedelta(days=14)).isoformat(),
-            "vat_default": VAT_RATE_DEFAULT,
-            "error": None,
-            "form": {},
-        },
+    sellers, products = _sellers_products(db)
+    selected = db.get(Seller, seller_id) if seller_id else None
+    return render(
+        request,
+        "documents/form.html",
+        _form_context(
+            doc_type=doc_type,
+            sellers=sellers,
+            products=products,
+            selected=selected,
+            today=format_date(date.today()),
+            due_default=format_date(date.today() + timedelta(days=14)),
+        ),
     )
 
 
@@ -306,35 +338,90 @@ def search_products(
     ]
 
 
-@app.post("/documents/new", response_class=HTMLResponse)
-async def document_create(request: Request, db: Session = Depends(get_db)):
-    redirect = require_login(request)
-    if redirect:
-        return redirect
+def _apply_document_fields(
+    document: Document,
+    *,
+    seller: Seller,
+    buyer: Buyer | None,
+    doc_type: str,
+    doc_date: date,
+    due_date: date | None,
+    buyer_name: str,
+    form: Any,
+    totals: Any,
+) -> None:
+    document.doc_type = doc_type
+    document.doc_date = doc_date
+    document.due_date = due_date
+    document.seller_id = seller.id
+    document.buyer_id = buyer.id if buyer and getattr(buyer, "id", None) else None
+    document.seller_name = nfc(seller.name)
+    document.seller_reg_nr = nfc(seller.reg_nr)
+    document.seller_vat_nr = nfc(seller.vat_nr)
+    document.seller_address = nfc(seller.address)
+    document.seller_bank = nfc(seller.bank)
+    document.seller_iban = nfc(seller.iban)
+    document.seller_phone = nfc(seller.phone)
+    document.seller_email = nfc(seller.email)
+    document.seller_logo_filename = nfc(getattr(seller, "logo_filename", "") or "")
+    document.buyer_name = buyer_name
+    document.buyer_reg_nr = nfc(form.get("buyer_reg_nr") or "").strip()
+    document.buyer_vat_nr = nfc(form.get("buyer_vat_nr") or "").strip()
+    document.buyer_address = nfc(form.get("buyer_address") or "").strip()
+    document.buyer_phone = nfc(form.get("buyer_phone") or "").strip()
+    document.buyer_email = nfc(form.get("buyer_email") or "").strip()
+    document.buyer_vat_checked = False
+    document.currency = "EUR"
+    document.notes = nfc(form.get("notes") or "").strip()
+    document.subtotal = totals.subtotal
+    document.vat_total = totals.vat_total
+    document.total = totals.total
+    document.lines.clear()
+    for i, line in enumerate(totals.lines):
+        document.lines.append(
+            DocumentLine(
+                position=i + 1,
+                description=nfc(line.description),
+                unit=nfc(line.unit),
+                quantity=line.quantity,
+                unit_price=line.unit_price,
+                vat_rate=line.vat_rate,
+                line_subtotal=line.line_subtotal,
+                line_vat=line.line_vat,
+                line_total=line.line_total,
+            )
+        )
 
+
+async def _save_document_from_form(
+    request: Request,
+    db: Session,
+    *,
+    document: Document | None = None,
+):
     form = await request.form()
-    doc_type = form.get("doc_type") or "invoice"
+    doc_type = form.get("doc_type") or (document.doc_type if document else "invoice")
     if doc_type not in ("invoice", "delivery_note"):
         doc_type = "invoice"
 
-    sellers = db.scalars(
-        select(Seller).where(Seller.is_active.is_(True)).order_by(Seller.sort_order)
-    ).all()
-    products = db.scalars(
-        select(Product).where(Product.is_active.is_(True)).order_by(Product.name)
-    ).all()
+    sellers, products = _sellers_products(db)
 
     def render_error(msg: str, selected: Seller | None = None):
-        return render(request, "documents/form.html", {"doc_type": doc_type,
-                "sellers": sellers,
-                "selected_seller": selected,
-                "products": products,
-                "today": form.get("doc_date") or date.today().isoformat(),
-                "due_default": form.get("due_date") or "",
-                "vat_default": VAT_RATE_DEFAULT,
-                "error": msg,
-                "form": dict(form),
-            },
+        return render(
+            request,
+            "documents/form.html",
+            _form_context(
+                doc_type=doc_type,
+                sellers=sellers,
+                products=products,
+                selected=selected,
+                today=form.get("doc_date") or format_date(date.today()),
+                due_default=form.get("due_date") or "",
+                error=msg,
+                form=dict(form),
+                document=document,
+                existing_lines=[],
+            ),
             status_code=400,
         )
 
@@ -370,54 +457,32 @@ async def document_create(request: Request, db: Session = Depends(get_db)):
         save_buyer=save_buyer or bool(form.get("buyer_id")),
     )
 
-    number = next_document_number(db, doc_type, doc_date)
-    document = Document(
+    if document is None:
+        document = Document(number=next_document_number(db, doc_type, doc_date))
+        db.add(document)
+
+    _apply_document_fields(
+        document,
+        seller=seller,
+        buyer=buyer,
         doc_type=doc_type,
-        number=number,
         doc_date=doc_date,
         due_date=due_date,
-        seller_id=seller.id,
-        buyer_id=buyer.id if buyer and getattr(buyer, "id", None) else None,
-        seller_name=nfc(seller.name),
-        seller_reg_nr=nfc(seller.reg_nr),
-        seller_vat_nr=nfc(seller.vat_nr),
-        seller_address=nfc(seller.address),
-        seller_bank=nfc(seller.bank),
-        seller_iban=nfc(seller.iban),
-        seller_phone=nfc(seller.phone),
-        seller_email=nfc(seller.email),
-        seller_logo_filename=nfc(getattr(seller, "logo_filename", "") or ""),
         buyer_name=buyer_name,
-        buyer_reg_nr=nfc(form.get("buyer_reg_nr") or "").strip(),
-        buyer_vat_nr=nfc(form.get("buyer_vat_nr") or "").strip(),
-        buyer_address=nfc(form.get("buyer_address") or "").strip(),
-        buyer_phone=nfc(form.get("buyer_phone") or "").strip(),
-        buyer_email=nfc(form.get("buyer_email") or "").strip(),
-        buyer_vat_checked=False,
-        currency="EUR",
-        notes=nfc(form.get("notes") or "").strip(),
-        subtotal=totals.subtotal,
-        vat_total=totals.vat_total,
-        total=totals.total,
+        form=form,
+        totals=totals,
     )
-    for i, line in enumerate(totals.lines):
-        document.lines.append(
-            DocumentLine(
-                position=i + 1,
-                description=nfc(line.description),
-                unit=nfc(line.unit),
-                quantity=line.quantity,
-                unit_price=line.unit_price,
-                vat_rate=line.vat_rate,
-                line_subtotal=line.line_subtotal,
-                line_vat=line.line_vat,
-                line_total=line.line_total,
-            )
-        )
-    db.add(document)
     db.commit()
     db.refresh(document)
     return RedirectResponse(f"/documents/{document.id}", status_code=303)
+
+
+@app.post("/documents/new", response_class=HTMLResponse)
+async def document_create(request: Request, db: Session = Depends(get_db)):
+    redirect = require_login(request)
+    if redirect:
+        return redirect
+    return await _save_document_from_form(request, db)
 
 
 @app.get("/documents/{doc_id}", response_class=HTMLResponse)
@@ -436,10 +501,107 @@ def document_detail(
     )
     if not document:
         return RedirectResponse("/documents", status_code=303)
-    return render(request, "documents/detail.html", {"doc": document,
+    return render(
+        request,
+        "documents/detail.html",
+        {
+            "doc": document,
             "pdf_engine": "weasyprint" if weasyprint_available() else "reportlab",
         },
     )
+
+
+@app.get("/documents/{doc_id}/edit", response_class=HTMLResponse)
+def document_edit(
+    request: Request,
+    doc_id: int,
+    db: Session = Depends(get_db),
+    seller_id: Optional[int] = Query(None),
+    doc_type: Optional[str] = Query(None),
+):
+    redirect = require_login(request)
+    if redirect:
+        return redirect
+    document = db.scalar(
+        select(Document)
+        .options(joinedload(Document.lines))
+        .where(Document.id == doc_id)
+    )
+    if not document:
+        return RedirectResponse("/documents", status_code=303)
+
+    effective_type = doc_type if doc_type in ("invoice", "delivery_note") else document.doc_type
+    sellers, products = _sellers_products(db)
+    selected = None
+    if seller_id:
+        selected = db.get(Seller, seller_id)
+    if selected is None:
+        selected = db.get(Seller, document.seller_id)
+
+    form = {
+        "buyer_id": str(document.buyer_id or ""),
+        "buyer_name": document.buyer_name,
+        "buyer_reg_nr": document.buyer_reg_nr,
+        "buyer_vat_nr": document.buyer_vat_nr,
+        "buyer_address": document.buyer_address,
+        "buyer_phone": document.buyer_phone,
+        "buyer_email": document.buyer_email,
+        "notes": document.notes,
+    }
+    return render(
+        request,
+        "documents/form.html",
+        _form_context(
+            doc_type=effective_type,
+            sellers=sellers,
+            products=products,
+            selected=selected,
+            today=format_date(document.doc_date),
+            due_default=format_date(document.due_date),
+            form=form,
+            document=document,
+            existing_lines=list(document.lines),
+        ),
+    )
+
+
+@app.post("/documents/{doc_id}/edit", response_class=HTMLResponse)
+async def document_update(
+    request: Request,
+    doc_id: int,
+    db: Session = Depends(get_db),
+):
+    redirect = require_login(request)
+    if redirect:
+        return redirect
+    document = db.scalar(
+        select(Document)
+        .options(joinedload(Document.lines))
+        .where(Document.id == doc_id)
+    )
+    if not document:
+        return RedirectResponse("/documents", status_code=303)
+    return await _save_document_from_form(request, db, document=document)
+
+
+@app.post("/documents/{doc_id}/delete")
+def document_delete(
+    request: Request,
+    doc_id: int,
+    db: Session = Depends(get_db),
+):
+    redirect = require_login(request)
+    if redirect:
+        return redirect
+    document = db.scalar(
+        select(Document)
+        .options(joinedload(Document.lines))
+        .where(Document.id == doc_id)
+    )
+    if document:
+        db.delete(document)
+        db.commit()
+    return RedirectResponse("/documents", status_code=303)
 
 
 @app.get("/documents/{doc_id}/pdf")
