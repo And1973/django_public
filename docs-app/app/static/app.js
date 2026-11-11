@@ -71,27 +71,38 @@
     (root || document).querySelectorAll('#lines-body input[type="number"]').forEach(wireNumberField);
   }
 
+  function sellerVatPayer() {
+    const form = document.getElementById("doc-form");
+    return !form || form.dataset.vatPayer !== "0";
+  }
+
   function recalc() {
     const rows = document.querySelectorAll("#lines-body tr");
     let subtotal = 0;
     let vatTotal = 0;
+    const vatOn = sellerVatPayer();
     rows.forEach((row) => {
       const qty = parseFloat(row.querySelector('[name="line_quantity"]').value) || 0;
       const price = parseFloat(row.querySelector('[name="line_unit_price"]').value) || 0;
-      const vat = parseFloat(row.querySelector('[name="line_vat_rate"]').value) || 0;
+      const vatInput = row.querySelector('[name="line_vat_rate"]');
+      const vat = vatOn ? (parseFloat(vatInput && vatInput.value) || 0) : 0;
       const lineSub = qty * price;
       const lineVat = lineSub * vat / 100;
       subtotal += lineSub;
       vatTotal += lineVat;
       const cell = row.querySelector(".line-sum");
-      if (cell) cell.textContent = money(lineSub);
+      if (cell) {
+        const hidden = cell.querySelector('input[type="hidden"][name="line_vat_rate"]');
+        cell.textContent = money(lineSub);
+        if (hidden) cell.prepend(hidden);
+      }
     });
     const elSub = document.getElementById("total-sub");
     const elVat = document.getElementById("total-vat");
     const elAll = document.getElementById("total-all");
     if (elSub) elSub.textContent = money(subtotal);
     if (elVat) elVat.textContent = money(vatTotal);
-    if (elAll) elAll.textContent = money(subtotal + vatTotal);
+    if (elAll) elAll.textContent = money(subtotal + (vatOn ? vatTotal : 0));
   }
 
   function addLine(data) {
@@ -99,15 +110,22 @@
     if (!body) return;
     const qty = data.quantity ?? 1;
     const price = formatPrice(data.unit_price ?? 0);
-    const vat = formatVatRate(data.vat_rate ?? 21);
+    const vatOn = sellerVatPayer();
+    const vat = formatVatRate(vatOn ? (data.vat_rate ?? 21) : 0);
+    const vatCell = vatOn
+      ? `<td class="col-vat-cell"><input name="line_vat_rate" type="number" step="0.01" min="0" value="${vat}" data-default="21"></td>`
+      : "";
+    const sumCell = vatOn
+      ? `<td class="line-sum">0.00</td>`
+      : `<td class="line-sum"><input type="hidden" name="line_vat_rate" value="0">0.00</td>`;
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><input name="line_description" required value="${data.description || ""}" placeholder="Prece / pakalpojums"></td>
       <td><input name="line_unit" value="${data.unit || "gab."}"></td>
       <td><input name="line_quantity" type="number" step="0.001" min="0" value="${qty}" data-default="1"></td>
       <td><input name="line_unit_price" type="number" step="0.01" min="0" value="${price}" data-default="0.00"></td>
-      <td><input name="line_vat_rate" type="number" step="0.01" min="0" value="${vat}" data-default="21"></td>
-      <td class="line-sum">0.00</td>
+      ${vatCell}
+      ${sumCell}
       <td><button type="button" class="btn btn-ghost remove-line" title="Dzēst">×</button></td>
     `;
     body.appendChild(tr);

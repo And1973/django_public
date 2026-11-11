@@ -140,35 +140,47 @@ h2 { font-size: 1.15rem; }
   color: var(--ink);
   border: 1px solid var(--line);
   text-align: left;
-  flex-direction: column;
+  display: flex;
+  flex-direction: row;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 0.25rem;
-  min-height: 5.25rem;
+  gap: 0.75rem;
+  min-height: 4.5rem;
   padding: 0.85rem 1rem;
   transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
-.btn-seller strong { font-size: 1rem; }
-.btn-seller > span:not(.seller-logo-slot) {
+.btn-seller strong { font-size: 1rem; line-height: 1.25; }
+.btn-seller .seller-btn-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.btn-seller .seller-btn-text > span {
   color: var(--muted);
   font-weight: 500;
   font-size: 0.9rem;
+  word-break: break-word;
 }
 .seller-logo-slot {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  flex: 0 0 4.5rem;
+  width: 4.5rem;
+  min-width: 4.5rem;
   height: 36px;
   min-height: 36px;
-  margin-bottom: 0.15rem;
-  width: 100%;
+  margin: 0;
 }
 .seller-logo-thumb {
   display: block;
   height: 36px;
   width: auto;
-  max-width: 120px;
+  max-width: 4.5rem;
   object-fit: contain;
   object-position: left center;
 }
@@ -177,18 +189,24 @@ h2 { font-size: 1.15rem; }
 }
 .seller-selected.has-logo {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 4.5rem 1fr;
   gap: 0.85rem;
   align-items: start;
 }
 .seller-selected .seller-logo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 4.5rem;
+  min-width: 4.5rem;
+  min-height: 40px;
   line-height: 0;
 }
 .seller-logo-header {
   display: block;
   height: 40px;
   width: auto;
-  max-width: 130px;
+  max-width: 4.5rem;
   object-fit: contain;
   object-position: left top;
 }
@@ -522,4 +540,20 @@ th {
     grid-template-columns: 1fr;
   }
   .topbar { flex-direction: column; align-items: flex-start; }
+
+  .btn-seller {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  .seller-logo-slot,
+  .seller-selected.has-logo .seller-logo-wrap {
+    flex: 0 0 4.5rem;
+    width: 4.5rem;
+    min-width: 4.5rem;
+  }
+  .seller-selected.has-logo {
+    grid-template-columns: 4.5rem 1fr;
+  }
 }

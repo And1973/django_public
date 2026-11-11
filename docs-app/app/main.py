@@ -23,12 +23,21 @@ from app.services.calc import calc_document
 from app.services.numbering import next_document_number
 from app.services.pdf import generate_pdf, weasyprint_available
 from app.services.seed import seed_sellers
-from app.textutil import format_date, format_money_input, format_vat_rate, nfc, parse_date, vat_label
+from app.textutil import (
+    format_date,
+    format_money_input,
+    format_vat_rate,
+    is_vat_payer,
+    nfc,
+    parse_date,
+    vat_label,
+)
 
 app = FastAPI(title="Rēķini un pavadzīmes")
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "app" / "static")), name="static")
 templates = Jinja2Templates(directory=str(BASE_DIR / "app" / "templates"))
 templates.env.globals["vat_label"] = vat_label
+templates.env.globals["is_vat_payer"] = is_vat_payer
 templates.env.globals["format_date"] = format_date
 templates.env.filters["nfc"] = nfc
 templates.env.filters["format_date"] = format_date
@@ -232,14 +241,16 @@ def _form_context(
     document: Document | None = None,
     existing_lines: list | None = None,
 ) -> dict:
+    seller_vat_payer = is_vat_payer(selected.vat_nr) if selected else True
     return {
         "doc_type": doc_type,
         "sellers": sellers,
         "selected_seller": selected,
+        "seller_vat_payer": seller_vat_payer,
         "products": products,
         "today": today,
         "due_default": due_default,
-        "vat_default": VAT_RATE_DEFAULT,
+        "vat_default": VAT_RATE_DEFAULT if seller_vat_payer else 0,
         "error": error,
         "form": form or {},
         "document": document,
@@ -442,6 +453,9 @@ async def _save_document_from_form(
         return render_error("Norādiet pircēja nosaukumu.", seller)
 
     raw_lines = _form_lines(form)
+    if not is_vat_payer(seller.vat_nr):
+        for line in raw_lines:
+            line["vat_rate"] = 0
     totals = calc_document(raw_lines)
     if not totals.lines:
         return render_error("Pievienojiet vismaz vienu rindu ar nosaukumu.", seller)

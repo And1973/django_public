@@ -17,6 +17,11 @@ def vat_label(vat_nr: str | None) -> str:
     return vat if vat else "nav PVN"
 
 
+def is_vat_payer(vat_nr: str | None) -> bool:
+    """True when a real VAT number is present (empty = not a VAT payer)."""
+    return bool(nfc(vat_nr).strip())
+
+
 def format_vat_rate(value: Any) -> str:
     """Show VAT % without trailing .0 (21 not 21.0); keep real decimals."""
     if value is None or value == "":

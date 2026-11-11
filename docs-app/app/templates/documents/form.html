@@ -29,8 +29,10 @@
         <img class="seller-logo-thumb" src="/static/logos/{{ s.logo_filename }}" alt="">
         {% endif %}
       </span>
-      <strong>{{ s.name }}</strong>
-      <span>{{ s.reg_nr }} · {{ vat_label(s.vat_nr) }}</span>
+      <span class="seller-btn-text">
+        <strong>{{ s.name }}</strong>
+        <span>{% if s.reg_nr %}{{ s.reg_nr }}{% endif %}{% if s.vat_nr %} · {{ s.vat_nr }}{% endif %}</span>
+      </span>
     </a>
     {% endfor %}
   </div>
@@ -38,20 +40,20 @@
   {% if not selected_seller %}
   <p class="muted">Nospiediet vienu no trim pārdevējiem, lai turpinātu.</p>
   {% else %}
-  <form method="post" action="{{ form_action }}" class="stack" id="doc-form">
+  <form method="post" action="{{ form_action }}" class="stack" id="doc-form" data-vat-payer="{{ '1' if seller_vat_payer else '0' }}">
     <input type="hidden" name="doc_type" value="{{ doc_type }}">
     <input type="hidden" name="seller_id" value="{{ selected_seller.id }}">
 
-    <div class="panel seller-selected{% if selected_seller.logo_filename %} has-logo{% endif %}" style="padding:1rem;background:var(--bg)">
-      {% if selected_seller.logo_filename %}
+    <div class="panel seller-selected has-logo" style="padding:1rem;background:var(--bg)">
       <div class="seller-logo-wrap">
+        {% if selected_seller.logo_filename %}
         <img class="seller-logo-header" src="/static/logos/{{ selected_seller.logo_filename }}" alt="">
+        {% endif %}
       </div>
-      {% endif %}
       <div class="seller-selected-meta">
         <strong>{{ selected_seller.name }}</strong>
         <div class="muted">
-          Reģ. Nr. {{ selected_seller.reg_nr }} · PVN {{ vat_label(selected_seller.vat_nr) }}<br>
+          {% if selected_seller.reg_nr %}Reģ. Nr. {{ selected_seller.reg_nr }}{% endif %}{% if selected_seller.vat_nr %}{% if selected_seller.reg_nr %} · {% endif %}PVN {{ selected_seller.vat_nr }}{% endif %}{% if selected_seller.reg_nr or selected_seller.vat_nr %}<br>{% endif %}
           {{ selected_seller.address }}<br>
           {{ selected_seller.bank }} · {{ selected_seller.iban }}
           {% if selected_seller.phone %}<br>{{ selected_seller.phone }}{% endif %}
@@ -130,13 +132,13 @@
     {% endif %}
 
     <div class="lines-table-wrap">
-      <table class="lines-table">
+      <table class="lines-table{% if not seller_vat_payer %} no-vat-seller{% endif %}">
         <colgroup>
           <col class="col-desc">
           <col class="col-unit">
           <col class="col-qty">
           <col class="col-price">
-          <col class="col-vat">
+          {% if seller_vat_payer %}<col class="col-vat">{% endif %}
           <col class="col-sum">
           <col class="col-actions">
         </colgroup>
@@ -146,7 +148,7 @@
             <th>Mērv.</th>
             <th>Daudz.</th>
             <th>Cena</th>
-            <th>PVN %</th>
+            {% if seller_vat_payer %}<th class="col-vat-cell">PVN %</th>{% endif %}
             <th>Summa</th>
             <th></th>
           </tr>
@@ -159,8 +161,10 @@
               <td><input name="line_unit" value="{{ line.unit }}"></td>
               <td><input name="line_quantity" type="number" step="0.001" min="0" value="{{ line.quantity }}" data-default="1"></td>
               <td><input name="line_unit_price" type="number" step="0.01" min="0" value="{{ line.unit_price|format_money_input }}" data-default="0.00"></td>
-              <td><input name="line_vat_rate" type="number" step="0.01" min="0" value="{{ line.vat_rate|format_vat_rate }}" data-default="21"></td>
-              <td class="line-sum">{{ '%.2f'|format(line.line_subtotal) }}</td>
+              {% if seller_vat_payer %}
+              <td class="col-vat-cell"><input name="line_vat_rate" type="number" step="0.01" min="0" value="{{ line.vat_rate|format_vat_rate }}" data-default="21"></td>
+              {% endif %}
+              <td class="line-sum">{% if not seller_vat_payer %}<input type="hidden" name="line_vat_rate" value="0">{% endif %}{{ '%.2f'|format(line.line_subtotal) }}</td>
               <td><button type="button" class="btn btn-ghost remove-line" title="Dzēst">×</button></td>
             </tr>
             {% endfor %}
@@ -170,8 +174,10 @@
             <td><input name="line_unit" value="gab."></td>
             <td><input name="line_quantity" type="number" step="0.001" min="0" value="1" data-default="1"></td>
             <td><input name="line_unit_price" type="number" step="0.01" min="0" value="0.00" data-default="0.00"></td>
-            <td><input name="line_vat_rate" type="number" step="0.01" min="0" value="{{ vat_default|format_vat_rate }}" data-default="21"></td>
-            <td class="line-sum">0.00</td>
+            {% if seller_vat_payer %}
+            <td class="col-vat-cell"><input name="line_vat_rate" type="number" step="0.01" min="0" value="{{ vat_default|format_vat_rate }}" data-default="21"></td>
+            {% endif %}
+            <td class="line-sum">{% if not seller_vat_payer %}<input type="hidden" name="line_vat_rate" value="0">{% endif %}0.00</td>
             <td><button type="button" class="btn btn-ghost remove-line" title="Dzēst">×</button></td>
           </tr>
           {% endif %}
@@ -180,9 +186,11 @@
     </div>
     <button type="button" class="btn btn-secondary" id="add-line">+ Pievienot rindu</button>
 
-    <div class="totals">
-      <div><span class="muted">Summa bez PVN</span><span><span id="total-sub">0.00</span> EUR</span></div>
-      <div><span class="muted">PVN</span><span><span id="total-vat">0.00</span> EUR</span></div>
+    <div class="totals{% if not seller_vat_payer %} no-vat-seller{% endif %}">
+      <div><span class="muted">{% if seller_vat_payer %}Summa bez PVN{% else %}Summa{% endif %}</span><span><span id="total-sub">0.00</span> EUR</span></div>
+      {% if seller_vat_payer %}
+      <div class="total-vat-row"><span class="muted">PVN</span><span><span id="total-vat">0.00</span> EUR</span></div>
+      {% endif %}
       <div class="grand"><span>Kopā</span><span><span id="total-all">0.00</span> EUR</span></div>
     </div>
 

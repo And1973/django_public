@@ -11,7 +11,7 @@
       <div class="seller-meta">
         <div class="seller-name">{{ doc.seller_name }}</div>
         {% if doc.seller_reg_nr %}<div>Reģ. Nr.: {{ doc.seller_reg_nr }}</div>{% endif %}
-        <div>PVN Nr.: {{ vat_label(doc.seller_vat_nr) }}</div>
+        {% if doc.seller_vat_nr %}<div>PVN Nr.: {{ doc.seller_vat_nr }}</div>{% endif %}
         {% if doc.seller_address %}<div>{{ doc.seller_address }}</div>{% endif %}
         {% if doc.seller_bank %}<div>Banka: {{ doc.seller_bank }}</div>{% endif %}
         {% if doc.seller_iban %}<div>IBAN: {{ doc.seller_iban }}</div>{% endif %}

@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.config import BASE_DIR
 from app.services.amount_words import amount_in_words_eur
-from app.textutil import format_date, nfc, vat_label
+from app.textutil import format_date, is_vat_payer, nfc, vat_label
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +24,7 @@ _env = Environment(
     autoescape=select_autoescape(["html", "xml"]),
 )
 _env.globals["vat_label"] = vat_label
+_env.globals["is_vat_payer"] = is_vat_payer
 _env.globals["amount_words"] = amount_in_words_eur
 _env.globals["format_date"] = format_date
 _env.filters["nfc"] = nfc
@@ -167,10 +168,11 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
     is_invoice = document.doc_type == "invoice"
     title = nfc("RĒĶINS") if is_invoice else nfc("PAVADZĪME")
 
+    seller_vat_on = is_vat_payer(document.seller_vat_nr)
     seller_bits = [
         f"<b>{nfc(document.seller_name)}</b>",
         f"Reģ. Nr.: {nfc(document.seller_reg_nr)}" if document.seller_reg_nr else "",
-        f"PVN Nr.: {vat_label(document.seller_vat_nr)}",
+        f"PVN Nr.: {nfc(document.seller_vat_nr)}" if seller_vat_on else "",
         nfc(document.seller_address),
         f"Banka: {nfc(document.seller_bank)}" if document.seller_bank else "",
         f"IBAN: {nfc(document.seller_iban)}" if document.seller_iban else "",
@@ -244,21 +246,25 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
 
     story: list[Any] = [header, Spacer(1, 10), *buyer_flow, Spacer(1, 10)]
 
-    table_header = ["Nr.", nfc("Nosaukums"), nfc("Mērv."), nfc("Daudz."), "Cena", "PVN %", "Summa"]
+    if seller_vat_on:
+        table_header = ["Nr.", nfc("Nosaukums"), nfc("Mērv."), nfc("Daudz."), "Cena", "PVN %", "Summa"]
+        col_widths = [10 * mm, 70 * mm, 15 * mm, 18 * mm, 18 * mm, 15 * mm, 22 * mm]
+    else:
+        table_header = ["Nr.", nfc("Nosaukums"), nfc("Mērv."), nfc("Daudz."), "Cena", "Summa"]
+        col_widths = [10 * mm, 80 * mm, 15 * mm, 18 * mm, 20 * mm, 25 * mm]
     data: list[list[Any]] = [table_header]
     for idx, line in enumerate(document.lines, start=1):
-        data.append(
-            [
-                str(idx),
-                Paragraph(nfc(line.description), small),
-                nfc(line.unit),
-                f"{line.quantity:g}",
-                f"{line.unit_price:.2f}",
-                f"{line.vat_rate:g}",
-                f"{line.line_subtotal:.2f}",
-            ]
-        )
-    col_widths = [10 * mm, 70 * mm, 15 * mm, 18 * mm, 18 * mm, 15 * mm, 22 * mm]
+        row = [
+            str(idx),
+            Paragraph(nfc(line.description), small),
+            nfc(line.unit),
+            f"{line.quantity:g}",
+            f"{line.unit_price:.2f}",
+        ]
+        if seller_vat_on:
+            row.append(f"{line.vat_rate:g}")
+        row.append(f"{line.line_subtotal:.2f}")
+        data.append(row)
     lines_table = Table(data, colWidths=col_widths, repeatRows=1)
     lines_table.setStyle(
         TableStyle(
@@ -282,28 +288,30 @@ def document_to_pdf_reportlab(document: Any) -> bytes:
 
     currency = nfc(document.currency or "EUR")
     totals_data = [
-        [nfc("Summa bez PVN"), f"{document.subtotal:.2f} {currency}"],
-        ["PVN", f"{document.vat_total:.2f} {currency}"],
-        [nfc("Kopā"), f"{document.total:.2f} {currency}"],
+        [
+            nfc("Summa bez PVN") if seller_vat_on else nfc("Summa"),
+            f"{document.subtotal:.2f} {currency}",
+        ],
+    ]
+    if seller_vat_on:
+        totals_data.append(["PVN", f"{document.vat_total:.2f} {currency}"])
+    totals_data.append([nfc("Kopā"), f"{document.total:.2f} {currency}"])
+    grand_row = len(totals_data) - 1
+    totals_style = [
+        ("FONTNAME", (0, 0), (-1, -1), font),
+        ("FONTNAME", (0, grand_row), (-1, grand_row), font_bold),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("FONTSIZE", (0, grand_row), (-1, grand_row), 11),
+        ("ALIGN", (0, 0), (0, -1), "LEFT"),
+        ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+        ("LINEABOVE", (0, grand_row), (-1, grand_row), 0.5, colors.grey),
+        ("TOPPADDING", (0, grand_row), (-1, grand_row), 6),
     ]
     totals_table = Table(totals_data, colWidths=[45 * mm, 35 * mm], hAlign="RIGHT")
-    totals_table.setStyle(
-        TableStyle(
-            [
-                ("FONTNAME", (0, 0), (-1, 1), font),
-                ("FONTNAME", (0, 2), (-1, 2), font_bold),
-                ("FONTSIZE", (0, 0), (-1, 1), 9),
-                ("FONTSIZE", (0, 2), (-1, 2), 11),
-                ("ALIGN", (0, 0), (0, -1), "LEFT"),
-                ("ALIGN", (1, 0), (1, -1), "RIGHT"),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("TOPPADDING", (0, 0), (-1, -1), 2),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
-                ("LINEABOVE", (0, 2), (-1, 2), 0.5, colors.grey),
-                ("TOPPADDING", (0, 2), (-1, 2), 6),
-            ]
-        )
-    )
+    totals_table.setStyle(TableStyle(totals_style))
     story.append(totals_table)
     story.append(Spacer(1, 12))
     story.append(
