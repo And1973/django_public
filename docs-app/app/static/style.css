@@ -306,8 +306,59 @@ th {
   margin-bottom: 0.35rem;
 }
 
-.lines-table input { padding: 0.5rem 0.55rem; }
-.lines-table td { vertical-align: middle; }
+.lines-table-wrap {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.lines-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.lines-table .col-desc { width: 42%; }
+.lines-table .col-unit { width: 7%; }
+.lines-table .col-qty { width: 9%; }
+.lines-table .col-price { width: 14%; }
+.lines-table .col-vat { width: 8%; }
+.lines-table .col-sum { width: 12%; }
+.lines-table .col-actions { width: 3.25rem; }
+
+.lines-table th,
+.lines-table td {
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+.lines-table th:nth-child(2),
+.lines-table td:nth-child(2),
+.lines-table th:nth-child(3),
+.lines-table td:nth-child(3),
+.lines-table th:nth-child(5),
+.lines-table td:nth-child(5) {
+  white-space: nowrap;
+}
+
+.lines-table input {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0.5rem 0.55rem;
+}
+
+.lines-table .line-sum {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding-right: 0.35rem;
+}
+
+.lines-table td:last-child {
+  text-align: center;
+  width: 3.25rem;
+}
 
 .totals {
   display: grid;
