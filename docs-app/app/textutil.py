@@ -17,6 +17,30 @@ def vat_label(vat_nr: str | None) -> str:
     return vat if vat else "nav PVN"
 
 
+def format_vat_rate(value: Any) -> str:
+    """Show VAT % without trailing .0 (21 not 21.0); keep real decimals."""
+    if value is None or value == "":
+        return ""
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return str(value).strip()
+    text = f"{number:.10g}"
+    if "e" in text.lower():
+        text = f"{number:.6f}".rstrip("0").rstrip(".")
+    return text or "0"
+
+
+def format_money_input(value: Any) -> str:
+    """Price/Cena inputs always show 2 fractional digits."""
+    if value is None or value == "":
+        return "0.00"
+    try:
+        return f"{float(value):.2f}"
+    except (TypeError, ValueError):
+        return str(value).strip()
+
+
 def format_date(value: Any) -> str:
     """Display dates as dd-mm-yyyy."""
     if value is None or value == "":

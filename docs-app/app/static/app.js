@@ -1,7 +1,7 @@
 (function () {
   const NUMBER_DEFAULTS = {
     line_quantity: "1",
-    line_unit_price: "0",
+    line_unit_price: "0.00",
     line_vat_rate: "21",
   };
 
@@ -9,10 +9,37 @@
     return (Math.round((n + Number.EPSILON) * 100) / 100).toFixed(2);
   }
 
+  function formatVatRate(value) {
+    const text = String(value ?? "").trim();
+    if (text === "") return "";
+    const n = Number(text);
+    if (!Number.isFinite(n)) return text;
+    let out = String(n);
+    if (/e/i.test(out)) {
+      out = n.toFixed(6).replace(/\.?0+$/, "");
+    }
+    return out;
+  }
+
+  function formatPrice(value) {
+    const text = String(value ?? "").trim();
+    if (text === "") return "0.00";
+    const n = Number(text);
+    if (!Number.isFinite(n)) return text;
+    return money(n);
+  }
+
+  function displayValue(input, value) {
+    const name = input.getAttribute("name");
+    if (name === "line_unit_price") return formatPrice(value);
+    if (name === "line_vat_rate") return formatVatRate(value);
+    return String(value ?? "").trim();
+  }
+
   function fieldDefault(input) {
     if (!input || input.type !== "number") return null;
     if (input.dataset.default != null && input.dataset.default !== "") {
-      return String(input.dataset.default);
+      return displayValue(input, input.dataset.default);
     }
     const name = input.getAttribute("name");
     return name && Object.prototype.hasOwnProperty.call(NUMBER_DEFAULTS, name)
@@ -20,11 +47,13 @@
       : null;
   }
 
-  function normalizeNumberValue(value) {
-    const text = String(value ?? "").trim();
-    if (text === "") return "";
-    const n = Number(text);
-    return Number.isFinite(n) ? String(n) : text;
+  function sameNumber(a, b) {
+    const na = Number(String(a ?? "").trim());
+    const nb = Number(String(b ?? "").trim());
+    if (!Number.isFinite(na) || !Number.isFinite(nb)) {
+      return String(a ?? "").trim() === String(b ?? "").trim();
+    }
+    return Math.abs(na - nb) < 1e-9;
   }
 
   function wireNumberField(input) {
@@ -33,6 +62,9 @@
     if (def == null) return;
     input.dataset.default = def;
     input.dataset.defaultWired = "1";
+    if (String(input.value).trim() !== "") {
+      input.value = displayValue(input, input.value);
+    }
   }
 
   function wireAllNumberFields(root) {
@@ -66,14 +98,14 @@
     const body = document.getElementById("lines-body");
     if (!body) return;
     const qty = data.quantity ?? 1;
-    const price = data.unit_price ?? 0;
-    const vat = data.vat_rate ?? 21;
+    const price = formatPrice(data.unit_price ?? 0);
+    const vat = formatVatRate(data.vat_rate ?? 21);
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><input name="line_description" required value="${data.description || ""}" placeholder="Prece / pakalpojums"></td>
       <td><input name="line_unit" value="${data.unit || "gab."}"></td>
       <td><input name="line_quantity" type="number" step="0.001" min="0" value="${qty}" data-default="1"></td>
-      <td><input name="line_unit_price" type="number" step="0.01" min="0" value="${price}" data-default="0"></td>
+      <td><input name="line_unit_price" type="number" step="0.01" min="0" value="${price}" data-default="0.00"></td>
       <td><input name="line_vat_rate" type="number" step="0.01" min="0" value="${vat}" data-default="21"></td>
       <td class="line-sum">0.00</td>
       <td><button type="button" class="btn btn-ghost remove-line" title="Dzēst">×</button></td>
@@ -93,7 +125,7 @@
     wireNumberField(input);
     const def = fieldDefault(input);
     if (def == null) return;
-    if (normalizeNumberValue(input.value) === normalizeNumberValue(def)) {
+    if (sameNumber(input.value, def)) {
       input.value = "";
     }
   });
@@ -107,7 +139,10 @@
     if (String(input.value).trim() === "") {
       input.value = def;
       recalc();
+      return;
     }
+    input.value = displayValue(input, input.value);
+    recalc();
   });
 
   document.addEventListener("click", (e) => {

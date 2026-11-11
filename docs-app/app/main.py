@@ -23,7 +23,7 @@ from app.services.calc import calc_document
 from app.services.numbering import next_document_number
 from app.services.pdf import generate_pdf, weasyprint_available
 from app.services.seed import seed_sellers
-from app.textutil import format_date, nfc, parse_date, vat_label
+from app.textutil import format_date, format_money_input, format_vat_rate, nfc, parse_date, vat_label
 
 app = FastAPI(title="Rēķini un pavadzīmes")
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "app" / "static")), name="static")
@@ -32,6 +32,8 @@ templates.env.globals["vat_label"] = vat_label
 templates.env.globals["format_date"] = format_date
 templates.env.filters["nfc"] = nfc
 templates.env.filters["format_date"] = format_date
+templates.env.filters["format_vat_rate"] = format_vat_rate
+templates.env.filters["format_money_input"] = format_money_input
 
 
 def render(request: Request, name: str, context: dict | None = None, status_code: int = 200):

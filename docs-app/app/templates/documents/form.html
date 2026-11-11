@@ -158,8 +158,8 @@
               <td><input name="line_description" required value="{{ line.description }}" placeholder="Prece / pakalpojums"></td>
               <td><input name="line_unit" value="{{ line.unit }}"></td>
               <td><input name="line_quantity" type="number" step="0.001" min="0" value="{{ line.quantity }}" data-default="1"></td>
-              <td><input name="line_unit_price" type="number" step="0.01" min="0" value="{{ line.unit_price }}" data-default="0"></td>
-              <td><input name="line_vat_rate" type="number" step="0.01" min="0" value="{{ line.vat_rate }}" data-default="21"></td>
+              <td><input name="line_unit_price" type="number" step="0.01" min="0" value="{{ line.unit_price|format_money_input }}" data-default="0.00"></td>
+              <td><input name="line_vat_rate" type="number" step="0.01" min="0" value="{{ line.vat_rate|format_vat_rate }}" data-default="21"></td>
               <td class="line-sum">{{ '%.2f'|format(line.line_subtotal) }}</td>
               <td><button type="button" class="btn btn-ghost remove-line" title="Dzēst">×</button></td>
             </tr>
@@ -169,8 +169,8 @@
             <td><input name="line_description" required placeholder="Prece / pakalpojums"></td>
             <td><input name="line_unit" value="gab."></td>
             <td><input name="line_quantity" type="number" step="0.001" min="0" value="1" data-default="1"></td>
-            <td><input name="line_unit_price" type="number" step="0.01" min="0" value="0" data-default="0"></td>
-            <td><input name="line_vat_rate" type="number" step="0.01" min="0" value="{{ vat_default }}" data-default="21"></td>
+            <td><input name="line_unit_price" type="number" step="0.01" min="0" value="0.00" data-default="0.00"></td>
+            <td><input name="line_vat_rate" type="number" step="0.01" min="0" value="{{ vat_default|format_vat_rate }}" data-default="21"></td>
             <td class="line-sum">0.00</td>
             <td><button type="button" class="btn btn-ghost remove-line" title="Dzēst">×</button></td>
           </tr>
