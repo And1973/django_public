@@ -318,7 +318,7 @@ th {
 }
 
 .lines-table .col-desc { width: auto; }
-.lines-table .col-unit { width: calc(4ch + 0.8rem); }
+.lines-table .col-unit { width: calc(4ch + 0.8rem + 0.7rem); }
 .lines-table .col-qty { width: 9%; }
 .lines-table .col-price { width: 13%; }
 .lines-table .col-vat { width: 5.25rem; } /* fits full «PVN %» */
@@ -338,9 +338,10 @@ th {
 /* Column width follows input hug-size, not header label length */
 .lines-table th:nth-child(2),
 .lines-table td:nth-child(2) {
-  width: calc(4ch + 0.8rem);
-  min-width: calc(4ch + 0.8rem);
-  max-width: calc(4ch + 0.8rem);
+  width: calc(4ch + 0.8rem + 0.7rem);
+  min-width: calc(4ch + 0.8rem + 0.7rem);
+  max-width: calc(4ch + 0.8rem + 0.7rem);
+  padding-right: 0.35rem;
   overflow: visible;
   white-space: nowrap;
   text-align: center;
@@ -358,6 +359,7 @@ th {
 
 .lines-table th:nth-child(3),
 .lines-table td:nth-child(3) {
+  padding-left: 0.35rem;
   white-space: nowrap;
 }
 
