@@ -355,6 +355,14 @@ th {
 .lines-table input[type="number"] {
   text-align: right;
   font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.lines-table input[type="number"]::-webkit-outer-spin-button,
+.lines-table input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .lines-table .line-sum {
