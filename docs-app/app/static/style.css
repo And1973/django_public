@@ -321,7 +321,7 @@ th {
 .lines-table .col-unit { width: calc(4ch + 0.8rem); }
 .lines-table .col-qty { width: 9%; }
 .lines-table .col-price { width: 13%; }
-.lines-table .col-vat { width: calc(2.25ch + 0.8rem); }
+.lines-table .col-vat { width: 5.25rem; } /* fits full «PVN %» */
 .lines-table .col-sum { width: 11%; }
 .lines-table .col-actions { width: 3.25rem; }
 
@@ -348,10 +348,10 @@ th {
 
 .lines-table th:nth-child(5),
 .lines-table td:nth-child(5) {
-  width: calc(2.25ch + 0.8rem);
-  min-width: calc(2.25ch + 0.8rem);
-  max-width: calc(2.25ch + 0.8rem);
-  overflow: visible; /* «PVN %» may paint outside; column stays input-sized */
+  width: 5.25rem;
+  min-width: 5.25rem;
+  max-width: 5.25rem;
+  overflow: hidden;
   white-space: nowrap;
   text-align: center;
 }
