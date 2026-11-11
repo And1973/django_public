@@ -119,10 +119,23 @@
     if (e.target.closest("#lines-body")) recalc();
   });
 
+  function isQtyOrPrice(input) {
+    const name = input.getAttribute("name");
+    return name === "line_quantity" || name === "line_unit_price";
+  }
+
   document.addEventListener("focusin", (e) => {
     const input = e.target;
     if (!input.matches || !input.matches('#lines-body input[type="number"]')) return;
     wireNumberField(input);
+    const current = String(input.value).trim();
+    if (isQtyOrPrice(input)) {
+      // Always clear so typing replaces the previous value; remember it for blur restore.
+      const fallback = fieldDefault(input) || "";
+      input.dataset.prevValue = current !== "" ? displayValue(input, current) : fallback;
+      input.value = "";
+      return;
+    }
     const def = fieldDefault(input);
     if (def == null) return;
     if (sameNumber(input.value, def)) {
@@ -135,13 +148,21 @@
     if (!input.matches || !input.matches('#lines-body input[type="number"]')) return;
     wireNumberField(input);
     const def = fieldDefault(input);
-    if (def == null) return;
     if (String(input.value).trim() === "") {
-      input.value = def;
+      if (isQtyOrPrice(input)) {
+        const prev = input.dataset.prevValue;
+        input.value = prev != null && prev !== ""
+          ? displayValue(input, prev)
+          : (def || "");
+      } else if (def != null) {
+        input.value = def;
+      }
+      delete input.dataset.prevValue;
       recalc();
       return;
     }
     input.value = displayValue(input, input.value);
+    delete input.dataset.prevValue;
     recalc();
   });
 
