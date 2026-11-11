@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}{% if is_edit %}Labot {{ document.number }}{% else %}Jauns dokuments{% endif %} — Rēķini un pavadzīmes{% endblock %}
+{% block content %}
+<section class="panel stack">
+  <div>
+    <h1>{% if is_edit %}Labot {{ document.number }}{% else %}Jauns dokuments{% endif %}</h1>
+    <p class="lead">{% if is_edit %}Labojiet datus un saglabājiet dokumentu.{% else %}Izvēlieties tipu un pārdevēju, aizpildiet pircēju un rindas.{% endif %}</p>
+  </div>
+
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+  <div class="form-grid">
+    <label>
+      Dokumenta tips
+      <select id="doc-type-switch" onchange="location.href='{% if is_edit %}/documents/{{ document.id }}/edit?doc_type='+this.value{% if selected_seller %}+'&seller_id={{ selected_seller.id }}'{% endif %}{% else %}/documents/new?doc_type='+this.value{% if selected_seller %}+'&seller_id={{ selected_seller.id }}'{% endif %}{% endif %}">
+        <option value="invoice" {% if doc_type == 'invoice' %}selected{% endif %}>Rēķins</option>
+        <option value="delivery_note" {% if doc_type == 'delivery_note' %}selected{% endif %}>Pavadzīme</option>
+      </select>
+    </label>
+  </div>
+
+  <h2 class="section-title">1. Pārdevējs</h2>
+  <div class="grid-3">
+    {% for s in sellers %}
+    <a class="btn btn-seller {% if selected_seller and selected_seller.id == s.id %}is-selected{% endif %}"
+       href="{% if is_edit %}/documents/{{ document.id }}/edit?doc_type={{ doc_type }}&seller_id={{ s.id }}{% else %}/documents/new?doc_type={{ doc_type }}&seller_id={{ s.id }}{% endif %}">
+      <span class="seller-logo-slot">
+        {% if s.logo_filename %}
+        <img class="seller-logo-thumb" src="/static/logos/{{ s.logo_filename }}" alt="">
+        {% endif %}
+      </span>
+      <span class="seller-btn-text">
+        <strong>{{ s.name }}</strong>
+        <span>{% if s.reg_nr %}{{ s.reg_nr }}{% endif %}{% if s.vat_nr %} · {{ s.vat_nr }}{% endif %}</span>
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% if not selected_seller %}
+  <p class="muted">Nospiediet vienu no trim pārdevējiem, lai turpinātu.</p>
+  {% else %}
+  <form method="post" action="{{ form_action }}" class="stack" id="doc-form" data-vat-payer="{{ '1' if seller_vat_payer else '0' }}">
+    <input type="hidden" name="doc_type" value="{{ doc_type }}">
+    <input type="hidden" name="seller_id" value="{{ selected_seller.id }}">
+
+    <div class="panel seller-selected has-logo" style="padding:1rem;background:var(--bg)">
+      <div class="seller-logo-wrap">
+        {% if selected_seller.logo_filename %}
+        <img class="seller-logo-header" src="/static/logos/{{ selected_seller.logo_filename }}" alt="">
+        {% endif %}
+      </div>
+      <div class="seller-selected-meta">
+        <strong>{{ selected_seller.name }}</strong>
+        <div class="muted">
+          {% if selected_seller.reg_nr %}Reģ. Nr. {{ selected_seller.reg_nr }}{% endif %}{% if selected_seller.vat_nr %}{% if selected_seller.reg_nr %} · {% endif %}PVN {{ selected_seller.vat_nr }}{% endif %}{% if selected_seller.reg_nr or selected_seller.vat_nr %}<br>{% endif %}
+          {{ selected_seller.address }}<br>
+          {{ selected_seller.bank }} · {{ selected_seller.iban }}
+          {% if selected_seller.phone %}<br>{{ selected_seller.phone }}{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Datums</h2>
+    <div class="form-grid">
+      <label>
+        Dokumenta datums (dd-mm-yyyy)
+        <input type="text" name="doc_date" value="{{ today }}" required placeholder="dd-mm-yyyy" inputmode="numeric" pattern="\d{2}-\d{2}-\d{4}">
+      </label>
+      {% if doc_type == 'invoice' %}
+      <label>
+        Apmaksas termiņš (dd-mm-yyyy)
+        <input type="text" name="due_date" value="{{ due_default }}" placeholder="dd-mm-yyyy" inputmode="numeric" pattern="\d{2}-\d{2}-\d{4}">
+      </label>
+      {% endif %}
+    </div>
+
+    <h2 class="section-title">3. Pircējs</h2>
+    <label class="full">
+      Meklēt saglabātu pircēju
+      <input type="search" id="buyer-search" placeholder="Nosaukums, reģ. nr. vai PVN nr." autocomplete="off">
+    </label>
+    <ul id="buyer-results" class="buyer-results"></ul>
+    <input type="hidden" name="buyer_id" id="buyer_id" value="{{ form.get('buyer_id', '') if form else '' }}">
+
+    <div class="form-grid">
+      <label class="full">
+        Nosaukums *
+        <input name="buyer_name" id="buyer_name" required value="{{ form.get('buyer_name', '') if form else '' }}">
+      </label>
+      <label>
+        Reģ. Nr.
+        <input name="buyer_reg_nr" id="buyer_reg_nr" value="{{ form.get('buyer_reg_nr', '') if form else '' }}">
+      </label>
+      <label>
+        PVN Nr.
+        <input name="buyer_vat_nr" id="buyer_vat_nr" value="{{ form.get('buyer_vat_nr', '') if form else '' }}">
+      </label>
+      <label class="full">
+        Adrese
+        <input name="buyer_address" id="buyer_address" value="{{ form.get('buyer_address', '') if form else '' }}">
+      </label>
+      <label>
+        Tālrunis
+        <input name="buyer_phone" id="buyer_phone" value="{{ form.get('buyer_phone', '') if form else '' }}">
+      </label>
+      <label>
+        E-pasts
+        <input name="buyer_email" id="buyer_email" type="email" value="{{ form.get('buyer_email', '') if form else '' }}">
+      </label>
+      <label class="checkbox full">
+        <input type="checkbox" name="save_buyer" checked>
+        Saglabāt pircēju atkārtotai izmantošanai
+      </label>
+    </div>
+
+    <h2 class="section-title">4. Rindas</h2>
+    {% if products %}
+    <label>
+      Pievienot no kataloga (neobligāti)
+      <select id="product-pick">
+        <option value="">— izvēlieties —</option>
+        {% for p in products %}
+        <option value="{{ p.id }}"
+                data-name="{{ p.name }}"
+                data-unit="{{ p.unit }}"
+                data-price="{{ p.price }}"
+                data-vat="{{ p.vat_rate }}">{{ p.name }} ({{ '%.2f'|format(p.price) }} €)</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% endif %}
+
+    <div class="lines-table-wrap">
+      <table class="lines-table{% if not seller_vat_payer %} no-vat-seller{% endif %}">
+        <colgroup>
+          <col class="col-desc">
+          <col class="col-unit">
+          <col class="col-qty">
+          <col class="col-price">
+          {% if seller_vat_payer %}<col class="col-vat">{% endif %}
+          <col class="col-sum">
+          <col class="col-actions">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Nosaukums</th>
+            <th>Mērv.</th>
+            <th>Daudz.</th>
+            <th>Cena</th>
+            {% if seller_vat_payer %}<th class="col-vat-cell">PVN %</th>{% endif %}
+            <th>Summa</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="lines-body">
+          {% if existing_lines %}
+            {% for line in existing_lines %}
+            <tr>
+              <td><input name="line_description" required value="{{ line.description }}" placeholder="Prece / pakalpojums"></td>
+              <td><input name="line_unit" value="{{ line.unit }}"></td>
+              <td><input name="line_quantity" type="number" step="0.001" min="0" value="{{ line.quantity }}" data-default="1"></td>
+              <td><input name="line_unit_price" type="number" step="0.01" min="0" value="{{ line.unit_price|format_money_input }}" data-default="0.00"></td>
+              {% if seller_vat_payer %}
+              <td class="col-vat-cell"><input name="line_vat_rate" type="number" step="0.01" min="0" value="{{ line.vat_rate|format_vat_rate }}" data-default="21"></td>
+              {% endif %}
+              <td class="line-sum">{% if not seller_vat_payer %}<input type="hidden" name="line_vat_rate" value="0">{% endif %}{{ '%.2f'|format(line.line_subtotal) }}</td>
+              <td><button type="button" class="btn btn-ghost remove-line" title="Dzēst">×</button></td>
+            </tr>
+            {% endfor %}
+          {% else %}
+          <tr>
+            <td><input name="line_description" required placeholder="Prece / pakalpojums"></td>
+            <td><input name="line_unit" value="gab."></td>
+            <td><input name="line_quantity" type="number" step="0.001" min="0" value="1" data-default="1"></td>
+            <td><input name="line_unit_price" type="number" step="0.01" min="0" value="0.00" data-default="0.00"></td>
+            {% if seller_vat_payer %}
+            <td class="col-vat-cell"><input name="line_vat_rate" type="number" step="0.01" min="0" value="{{ vat_default|format_vat_rate }}" data-default="21"></td>
+            {% endif %}
+            <td class="line-sum">{% if not seller_vat_payer %}<input type="hidden" name="line_vat_rate" value="0">{% endif %}0.00</td>
+            <td><button type="button" class="btn btn-ghost remove-line" title="Dzēst">×</button></td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+    <button type="button" class="btn btn-secondary" id="add-line">+ Pievienot rindu</button>
+
+    <div class="totals{% if not seller_vat_payer %} no-vat-seller{% endif %}">
+      <div><span class="muted">{% if seller_vat_payer %}Summa bez PVN{% else %}Summa{% endif %}</span><span><span id="total-sub">0.00</span> EUR</span></div>
+      {% if seller_vat_payer %}
+      <div class="total-vat-row"><span class="muted">PVN</span><span><span id="total-vat">0.00</span> EUR</span></div>
+      {% endif %}
+      <div class="grand"><span>Kopā</span><span><span id="total-all">0.00</span> EUR</span></div>
+    </div>
+
+    <label class="full">
+      Piezīmes
+      <textarea name="notes" rows="2">{{ form.get('notes', '') if form else '' }}</textarea>
+    </label>
+
+    <div class="actions-row">
+      <a class="btn btn-secondary" href="/documents">Atcelt</a>
+      <button class="btn btn-secondary" type="submit" name="action" value="save">Saglabāt</button>
+      <button class="btn" type="submit" name="action" value="save_pdf">Saglabāt un atvērt PDF</button>
+    </div>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

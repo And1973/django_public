@@ -1,0 +1,74 @@
+{% extends "pdf/base_doc.html" %}
+{% block content %}
+{% set seller_vat_payer = is_vat_payer(doc.seller_vat_nr) %}
+{% with party_label="Izsniedzējs", doc_title="PAVADZĪME", show_due=False %}
+{% include "pdf/partials/doc_header.html" %}
+{% endwith %}
+
+<div class="buyer-box">
+  <div class="label">Saņēmējs</div>
+  <strong>{{ doc.buyer_name }}</strong><br>
+  {% if doc.buyer_reg_nr %}Reģ. Nr.: {{ doc.buyer_reg_nr }}<br>{% endif %}
+  PVN Nr.: {{ vat_label(doc.buyer_vat_nr) }}<br>
+  {% if doc.buyer_address %}{{ doc.buyer_address }}<br>{% endif %}
+  {% if doc.buyer_phone %}{{ doc.buyer_phone }}{% endif %}
+  {% if doc.buyer_email %} · {{ doc.buyer_email }}{% endif %}
+</div>
+
+<table class="lines">
+  <thead>
+    <tr>
+      <th style="width:28px">Nr.</th>
+      <th>Nosaukums</th>
+      <th style="width:48px">Mērv.</th>
+      <th style="width:56px">Daudz.</th>
+      <th style="width:64px">Cena</th>
+      {% if seller_vat_payer %}<th style="width:48px">PVN %</th>{% endif %}
+      <th style="width:72px">Summa</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for line in doc.lines %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ line.description }}</td>
+      <td>{{ line.unit }}</td>
+      <td class="num">{{ line.quantity }}</td>
+      <td class="num">{{ '%.2f'|format(line.unit_price) }}</td>
+      {% if seller_vat_payer %}<td class="num">{{ line.vat_rate }}</td>{% endif %}
+      <td class="num">{{ '%.2f'|format(line.line_subtotal) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<table class="totals">
+  <tr>
+    <td class="label-cell">{% if seller_vat_payer %}Summa bez PVN{% else %}Summa{% endif %}</td>
+    <td class="num">{{ '%.2f'|format(doc.subtotal) }} {{ doc.currency }}</td>
+  </tr>
+  {% if seller_vat_payer %}
+  <tr>
+    <td class="label-cell">PVN</td>
+    <td class="num">{{ '%.2f'|format(doc.vat_total) }} {{ doc.currency }}</td>
+  </tr>
+  {% endif %}
+  <tr class="grand">
+    <td class="label-cell">Kopā</td>
+    <td class="num">{{ '%.2f'|format(doc.total) }} {{ doc.currency }}</td>
+  </tr>
+</table>
+
+<div class="footer-block">
+  <p class="amount-words"><strong>Summa vārdiem:</strong> {{ amount_words(doc.total) }}</p>
+  <p class="legal-line">Dokuments sagatavots elektroniski un derīgs bez paraksta.</p>
+</div>
+
+{% if doc.notes %}<div class="notes"><strong>Piezīmes:</strong> {{ doc.notes }}</div>{% endif %}
+
+<div class="sign">
+  Izsniedza: ____________________________
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  Saņēma: ____________________________
+</div>
+{% endblock %}

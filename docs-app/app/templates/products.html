@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Preču katalogs — Rēķini un pavadzīmes{% endblock %}
+{% block content %}
+<section class="panel stack">
+  <div>
+    <h1>Preču katalogs</h1>
+    <p class="lead">Neobligāts. Dokumenta rindas var ievadīt arī brīvā formā.</p>
+  </div>
+
+  <form method="post" action="/products" class="form-grid">
+    <label>
+      Nosaukums *
+      <input name="name" required>
+    </label>
+    <label>
+      Mērvienība
+      <input name="unit" value="gab.">
+    </label>
+    <label>
+      Cena (bez PVN)
+      <input name="price" type="number" step="0.01" min="0" value="0">
+    </label>
+    <label>
+      PVN %
+      <input name="vat_rate" type="number" step="0.01" min="0" value="21">
+    </label>
+    <label>
+      Kods
+      <input name="sku">
+    </label>
+    <div style="align-self:end">
+      <button class="btn" type="submit">Pievienot</button>
+    </div>
+  </form>
+
+  {% if products %}
+  <table>
+    <thead>
+      <tr>
+        <th>Nosaukums</th>
+        <th>Mērv.</th>
+        <th>Cena</th>
+        <th>PVN %</th>
+        <th>Kods</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in products %}
+      <tr>
+        <td>{{ p.name }}</td>
+        <td>{{ p.unit }}</td>
+        <td>{{ '%.2f'|format(p.price) }}</td>
+        <td>{{ p.vat_rate }}</td>
+        <td>{{ p.sku }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Katalogs tukšs.</p>
+  {% endif %}
+</section>
+{% endblock %}
