@@ -352,6 +352,11 @@ th {
   padding: 0.5rem 0.55rem;
 }
 
+.lines-table input[type="number"] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .lines-table .line-sum {
   text-align: right;
   font-variant-numeric: tabular-nums;

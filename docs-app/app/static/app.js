@@ -1,6 +1,42 @@
 (function () {
+  const NUMBER_DEFAULTS = {
+    line_quantity: "1",
+    line_unit_price: "0",
+    line_vat_rate: "21",
+  };
+
   function money(n) {
     return (Math.round((n + Number.EPSILON) * 100) / 100).toFixed(2);
+  }
+
+  function fieldDefault(input) {
+    if (!input || input.type !== "number") return null;
+    if (input.dataset.default != null && input.dataset.default !== "") {
+      return String(input.dataset.default);
+    }
+    const name = input.getAttribute("name");
+    return name && Object.prototype.hasOwnProperty.call(NUMBER_DEFAULTS, name)
+      ? NUMBER_DEFAULTS[name]
+      : null;
+  }
+
+  function normalizeNumberValue(value) {
+    const text = String(value ?? "").trim();
+    if (text === "") return "";
+    const n = Number(text);
+    return Number.isFinite(n) ? String(n) : text;
+  }
+
+  function wireNumberField(input) {
+    if (!input || input.type !== "number" || input.dataset.defaultWired === "1") return;
+    const def = fieldDefault(input);
+    if (def == null) return;
+    input.dataset.default = def;
+    input.dataset.defaultWired = "1";
+  }
+
+  function wireAllNumberFields(root) {
+    (root || document).querySelectorAll('#lines-body input[type="number"]').forEach(wireNumberField);
   }
 
   function recalc() {
@@ -29,22 +65,49 @@
   function addLine(data) {
     const body = document.getElementById("lines-body");
     if (!body) return;
+    const qty = data.quantity ?? 1;
+    const price = data.unit_price ?? 0;
+    const vat = data.vat_rate ?? 21;
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><input name="line_description" required value="${data.description || ""}" placeholder="Prece / pakalpojums"></td>
       <td><input name="line_unit" value="${data.unit || "gab."}"></td>
-      <td><input name="line_quantity" type="number" step="0.001" min="0" value="${data.quantity ?? 1}"></td>
-      <td><input name="line_unit_price" type="number" step="0.01" min="0" value="${data.unit_price ?? 0}"></td>
-      <td><input name="line_vat_rate" type="number" step="0.01" min="0" value="${data.vat_rate ?? 21}"></td>
+      <td><input name="line_quantity" type="number" step="0.001" min="0" value="${qty}" data-default="1"></td>
+      <td><input name="line_unit_price" type="number" step="0.01" min="0" value="${price}" data-default="0"></td>
+      <td><input name="line_vat_rate" type="number" step="0.01" min="0" value="${vat}" data-default="21"></td>
       <td class="line-sum">0.00</td>
       <td><button type="button" class="btn btn-ghost remove-line" title="Dzēst">×</button></td>
     `;
     body.appendChild(tr);
+    wireAllNumberFields(tr);
     recalc();
   }
 
   document.addEventListener("input", (e) => {
     if (e.target.closest("#lines-body")) recalc();
+  });
+
+  document.addEventListener("focusin", (e) => {
+    const input = e.target;
+    if (!input.matches || !input.matches('#lines-body input[type="number"]')) return;
+    wireNumberField(input);
+    const def = fieldDefault(input);
+    if (def == null) return;
+    if (normalizeNumberValue(input.value) === normalizeNumberValue(def)) {
+      input.value = "";
+    }
+  });
+
+  document.addEventListener("focusout", (e) => {
+    const input = e.target;
+    if (!input.matches || !input.matches('#lines-body input[type="number"]')) return;
+    wireNumberField(input);
+    const def = fieldDefault(input);
+    if (def == null) return;
+    if (String(input.value).trim() === "") {
+      input.value = def;
+      recalc();
+    }
   });
 
   document.addEventListener("click", (e) => {
@@ -119,6 +182,7 @@
   if (document.getElementById("lines-body") && !document.querySelector("#lines-body tr")) {
     addLine({ description: "", unit: "gab.", quantity: 1, unit_price: 0, vat_rate: 21 });
   } else {
+    wireAllNumberFields();
     recalc();
   }
 })();
